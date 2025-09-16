@@ -59,7 +59,8 @@ class ProfileScreen extends StatelessWidget {
                         ),
                         child: const CircleAvatar(
                           radius: 54,
-                          backgroundImage: AssetImage("lib/assets/images/kert.jpg"),
+                          backgroundImage:
+                              AssetImage("lib/assets/images/kert.jpg"),
                         ),
                       ),
                       GestureDetector(
@@ -70,10 +71,12 @@ class ProfileScreen extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             shape: BoxShape.circle,
-                            border: Border.all(color: Color(0xFF2ECC71), width: 2),
+                            border: Border.all(
+                                color: Color(0xFF2ECC71), width: 2),
                           ),
                           padding: const EdgeInsets.all(8),
-                          child: const Icon(Icons.edit, color: Color(0xFF2ECC71), size: 20),
+                          child: const Icon(Icons.edit,
+                              color: Color(0xFF2ECC71), size: 20),
                         ),
                       ),
                     ],
@@ -105,7 +108,8 @@ class ProfileScreen extends StatelessWidget {
             Expanded(
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -120,14 +124,18 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 18),
 
-                    // Profile Options
+                    // Notifications
                     _profileOption(
-                      icon: Icons.bookmark,
-                      iconColor: Color(0xFF2ECC71),
-                      title: "Saved Tips",
-                      onTap: () {},
+                      icon: Icons.notifications_none,
+                      iconColor: Color(0xFFFFA726),
+                      title: "Notifications",
+                      onTap: () {
+                        GoRouter.of(context).go('/notifications');
+                      },
                     ),
                     const SizedBox(height: 14),
+
+                    // My Submissions
                     _profileOption(
                       icon: Icons.note_alt_outlined,
                       iconColor: Color(0xFF5DADE2),
@@ -137,13 +145,19 @@ class ProfileScreen extends StatelessWidget {
                       },
                     ),
                     const SizedBox(height: 14),
+
+                    // Settings
                     _profileOption(
                       icon: Icons.settings_outlined,
                       iconColor: Color(0xFFBB8FCE),
                       title: "Settings",
-                      onTap: () {},
+                      onTap: () {
+                        GoRouter.of(context).go('/settings');
+                      },
                     ),
                     const SizedBox(height: 14),
+
+                    // Log Out
                     _profileOption(
                       icon: Icons.logout,
                       iconColor: Color(0xFFE74C3C),
@@ -154,7 +168,8 @@ class ProfileScreen extends StatelessWidget {
                           builder: (BuildContext dialogContext) {
                             return AlertDialog(
                               title: const Text("Log Out"),
-                              content: const Text("Are you sure you want to log out?"),
+                              content: const Text(
+                                  "Are you sure you want to log out?"),
                               actions: [
                                 TextButton(
                                   child: const Text("Cancel"),
@@ -165,9 +180,8 @@ class ProfileScreen extends StatelessWidget {
                                 TextButton(
                                   child: const Text("Log Out"),
                                   onPressed: () {
-                                    Navigator.of(dialogContext).pop(); // Close dialog
-                                    // TODO: Add your logout logic here (e.g., clear user session)
-                                    GoRouter.of(context).go('/login'); // Use GoRouter for navigation
+                                    Navigator.of(dialogContext).pop();
+                                    GoRouter.of(context).go('/login');
                                   },
                                 ),
                               ],
@@ -183,7 +197,8 @@ class ProfileScreen extends StatelessWidget {
           ],
         ),
         floatingActionButton: const SubmissionButton(),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButtonLocation:
+            FloatingActionButtonLocation.centerDocked,
         bottomNavigationBar: const EcoBottomNavBar(currentIndex: 4),
       ),
     );
@@ -233,7 +248,8 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.black38),
+            const Icon(Icons.arrow_forward_ios,
+                size: 16, color: Colors.black38),
           ],
         ),
       ),

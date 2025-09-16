@@ -8,7 +8,12 @@ import '../screen/learning_hub_screen.dart';
 import '../screen/eco_tips_screen.dart';
 import '../screen/submission_screen.dart';
 import '../screen/profile_screen.dart';
-import '../screen/recycle_history_screen.dart'; // Add this import
+import '../screen/recycle_history_screen.dart';
+import '../screen/settings_screen.dart';
+import '../screen/edit_profile_screen.dart';
+import '../screen/change_password_screen.dart';
+import '../screen/manage_email_screen.dart';
+import '../screen/notification_screen.dart'; // ✅ New
 
 final appRouter = GoRouter(
   initialLocation: '/login',
@@ -22,11 +27,11 @@ final appRouter = GoRouter(
       builder: (context, state) => const RegisterScreen(),
     ),
     GoRoute(
-      path: '/home', // 🔄 Changed from /dashboard to /home for bottom nav
+      path: '/home', // Bottom nav home/dashboard
       builder: (context, state) => const DashboardScreen(),
     ),
     GoRoute(
-      path: '/tips', // 🔄 Instead of /saved
+      path: '/tips',
       builder: (context, state) => const EcoTipsScreen(),
     ),
     GoRoute(
@@ -34,16 +39,40 @@ final appRouter = GoRouter(
       builder: (context, state) => const LearningHubScreen(),
     ),
     GoRoute(
-      path: '/submissions', // plural for consistencya
+      path: '/submissions',
       builder: (context, state) => const SubmissionScreen(),
     ),
     GoRoute(
-      path: '/profile', // ✅ Added missing profile route
+      path: '/profile',
       builder: (context, state) => const ProfileScreen(),
     ),
     GoRoute(
       path: '/recycle-history',
       builder: (context, state) => const RecycleHistoryScreen(),
+    ),
+
+    // ✅ Settings and sub-screens
+    GoRoute(
+      path: '/settings',
+      builder: (context, state) => const SettingsScreen(),
+    ),
+    GoRoute(
+      path: '/settings/edit-profile',
+      builder: (context, state) => const EditProfileScreen(),
+    ),
+    GoRoute(
+      path: '/settings/change-password',
+      builder: (context, state) => const ChangePasswordScreen(),
+    ),
+    GoRoute(
+      path: '/settings/manage-email',
+      builder: (context, state) => const ManageEmailScreen(),
+    ),
+
+    // ✅ Notifications
+    GoRoute(
+      path: '/notifications',
+      builder: (context, state) => const NotificationScreen(),
     ),
   ],
 );

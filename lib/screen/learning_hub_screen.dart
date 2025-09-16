@@ -67,12 +67,6 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
               ),
             ],
           ),
-          actions: const [
-            Padding(
-              padding: EdgeInsets.only(right: 16),
-              child: Icon(Icons.settings, color: Colors.black54),
-            ),
-          ],
         ),
         body: Padding(
           padding: const EdgeInsets.all(16),

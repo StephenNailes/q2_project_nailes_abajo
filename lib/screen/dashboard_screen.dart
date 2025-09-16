@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../components/eco_bottom_nav.dart';
 import '../components/dashboard/items_recycled_card.dart';
 import '../components/dashboard/eco_tip_card.dart';
@@ -37,10 +38,20 @@ class DashboardScreen extends StatelessWidget {
               ),
             ],
           ),
-          actions: const [
+          actions: [
             Padding(
-              padding: EdgeInsets.only(right: 16),
-              child: Icon(Icons.settings, color: Colors.black54),
+              padding: const EdgeInsets.only(right: 8),
+              child: IconButton(
+                icon: const Icon(Icons.notifications, color: Colors.black54),
+                onPressed: () => context.go('/notifications'),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: IconButton(
+                icon: const Icon(Icons.settings, color: Colors.black54),
+                onPressed: () => context.go('/settings'),
+              ),
             ),
           ],
         ),

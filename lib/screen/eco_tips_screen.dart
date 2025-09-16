@@ -72,12 +72,6 @@ class _EcoTipsScreenState extends State<EcoTipsScreen> {
               ),
             ],
           ),
-          actions: const [
-            Padding(
-              padding: EdgeInsets.only(right: 16),
-              child: Icon(Icons.settings, color: Colors.black54),
-            ),
-          ],
         ),
         body: Padding(
           padding: const EdgeInsets.all(16),
