@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -15,102 +14,135 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF9FAFB),
       body: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: Center(
           child: SingleChildScrollView(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Logo + Title
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Icon(Icons.eco, size: 40, color: Color(0xFF2ECC71)),
-                    const SizedBox(width: 8),
-                    Text("Create Account",
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleLarge
-                            ?.copyWith(fontWeight: FontWeight.bold)),
+                    const SizedBox(width: 10),
+                    Text(
+                      "Create Account",
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                            letterSpacing: 1.1,
+                          ),
+                    ),
                   ],
                 ),
-
-                const SizedBox(height: 32),
+                const SizedBox(height: 40),
 
                 // Full Name
                 TextField(
                   decoration: InputDecoration(
-                    hintText: "Enter your full name",
-                    labelText: "Full Name",
+                    hintText: "Full Name",
                     prefixIcon: const Icon(Icons.person_outline),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 18),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
 
                 // Email
                 TextField(
                   decoration: InputDecoration(
-                    hintText: "Enter your email",
-                    labelText: "Email Address",
+                    hintText: "Email Address",
                     prefixIcon: const Icon(Icons.email_outlined),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 18),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
 
                 // Password
                 TextField(
                   obscureText: true,
                   decoration: InputDecoration(
-                    hintText: "Create a password",
-                    labelText: "Password",
+                    hintText: "Password",
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: const Icon(Icons.visibility_outlined),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 18),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
 
                 // Confirm Password
                 TextField(
                   obscureText: true,
                   decoration: InputDecoration(
-                    hintText: "Confirm your password",
-                    labelText: "Confirm Password",
+                    hintText: "Confirm Password",
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: const Icon(Icons.visibility_outlined),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 18),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                 ),
-
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
 
                 // Terms & Conditions
                 Row(
                   children: [
                     Checkbox(
                       value: _agreedToTerms,
+                      activeColor: const Color(0xFF2ECC71),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
                       onChanged: (value) {
                         setState(() {
                           _agreedToTerms = value ?? false;
                         });
                       },
                     ),
-                    const Expanded(
+                    Expanded(
                       child: Text.rich(
                         TextSpan(
                           text: "I agree to ",
-                          style: TextStyle(color: Colors.grey),
+                          style: const TextStyle(color: Colors.grey, fontSize: 13),
                           children: [
                             TextSpan(
                               text: "Terms of Service",
-                              style: TextStyle(
-                                  color: Color(0xFF2ECC71),
-                                  fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                color: Color(0xFF2ECC71),
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                            TextSpan(text: " and the "),
+                            const TextSpan(text: " and "),
                             TextSpan(
                               text: "Privacy Policy",
-                              style: TextStyle(
-                                  color: Color(0xFF2ECC71),
-                                  fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                color: Color(0xFF2ECC71),
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ],
                         ),
@@ -118,8 +150,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ],
                 ),
-
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
 
                 // Create Account button
                 SizedBox(
@@ -127,7 +158,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: ElevatedButton(
                     onPressed: _agreedToTerms
                         ? () {
-                            // ✅ Navigate to Dashboard/Home after register
                             context.go('/home');
                           }
                         : null,
@@ -135,21 +165,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       backgroundColor: const Color(0xFF2ECC71),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      elevation: 0,
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        letterSpacing: 0.5,
+                      ),
                     ),
                     child: const Text("Create Account"),
                   ),
                 ),
-
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
 
                 // Already have account
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Already have an account? "),
-                    InkWell(
+                    const Text("Already have an account? ",
+                        style: TextStyle(fontSize: 14)),
+                    GestureDetector(
                       onTap: () {
                         context.go('/login');
                       },
@@ -158,50 +195,60 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         style: TextStyle(
                           color: Color(0xFF2ECC71),
                           fontWeight: FontWeight.bold,
-                          decoration: TextDecoration.underline, // optional
+                          decoration: TextDecoration.underline,
+                          fontSize: 14,
                         ),
                       ),
                     ),
                   ],
                 ),
-
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
 
                 // Divider with text
                 Row(
-                  children: const [
-                    Expanded(child: Divider(thickness: 1)),
+                  children: [
+                    const Expanded(child: Divider(thickness: 1)),
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Text("Or sign up with",
-                          style: TextStyle(color: Colors.grey)),
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Text(
+                        "Or sign up with",
+                        style: TextStyle(color: Colors.grey[500], fontSize: 13),
+                      ),
                     ),
-                    Expanded(child: Divider(thickness: 1)),
+                    const Expanded(child: Divider(thickness: 1)),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
 
-                // Google Sign-in button with real logo
+                // Google Sign-in button
                 OutlinedButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    // TODO: Implement Google sign-up
+                  },
                   icon: Image.asset(
-                    'lib/assets/images/Google__G__logo.png', // ✅ Official Google logo
+                    'lib/assets/images/Google__G__logo.png',
                     height: 24,
                     width: 24,
                   ),
                   label: const Text(
                     "Sign up with Google",
                     style: TextStyle(
-                        fontWeight: FontWeight.bold, color: Colors.black),
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                      fontSize: 15,
+                    ),
                   ),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                     side: const BorderSide(color: Colors.grey),
                     minimumSize: const Size(double.infinity, 50),
+                    backgroundColor: Colors.white,
                   ),
                 ),
+                const SizedBox(height: 10),
               ],
             ),
           ),

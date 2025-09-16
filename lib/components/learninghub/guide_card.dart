@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../learninghub/guide_detail_screen.dart'; // <-- Import GuideDetailScreen + steps
+import '../learninghub/guides_data.dart'; // <-- Where your guide step data is stored
 
 class GuideCard extends StatefulWidget {
   final String title;
@@ -38,7 +40,20 @@ class _GuideCardState extends State<GuideCard> {
     }
   }
 
-  /// 🔍 Highlight search query inside text
+  void _openGuide(BuildContext context) {
+    final steps = GuidesData.getStepsForTitle(widget.title); // <-- fetch steps
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => GuideDetailScreen(
+          guideTitle: widget.title,
+          steps: steps,
+        ),
+      ),
+    );
+  }
+
+  /// 🔍 Highlight search query
   Widget _buildHighlightedText(
     String text,
     String query, {
@@ -57,10 +72,7 @@ class _GuideCardState extends State<GuideCard> {
     while (true) {
       final index = lowerText.indexOf(lowerQuery, start);
       if (index < 0) {
-        spans.add(TextSpan(
-          text: text.substring(start),
-          style: normalStyle,
-        ));
+        spans.add(TextSpan(text: text.substring(start), style: normalStyle));
         break;
       }
 
@@ -84,77 +96,80 @@ class _GuideCardState extends State<GuideCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.10),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFFE9FBEF),
-              borderRadius: BorderRadius.circular(10),
+    return GestureDetector(
+      onTap: () => _openGuide(context),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(22),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.10),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
             ),
-            padding: const EdgeInsets.all(10),
-            child:
-                const Icon(Icons.article, color: Color(0xFF2ECC71), size: 32),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHighlightedText(
-                  widget.title,
-                  widget.searchQuery,
-                  normalStyle: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 17,
-                    color: Colors.black,
-                  ),
-                  highlightStyle: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 17,
-                    color: Colors.orange,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                _buildHighlightedText(
-                  widget.subtitle,
-                  widget.searchQuery,
-                  normalStyle: const TextStyle(
-                    color: Colors.black54,
-                    fontSize: 15,
-                  ),
-                  highlightStyle: const TextStyle(
-                    color: Colors.orange,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFE9FBEF),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: const EdgeInsets.all(10),
+              child: const Icon(Icons.article,
+                  color: Color(0xFF2ECC71), size: 32),
             ),
-          ),
-          IconButton(
-            icon: Icon(
-              _bookmarked ? Icons.bookmark : Icons.bookmark_border,
-              color: _bookmarked ? const Color(0xFF2ECC71) : Colors.grey,
-              size: 28,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHighlightedText(
+                    widget.title,
+                    widget.searchQuery,
+                    normalStyle: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 17,
+                      color: Colors.black,
+                    ),
+                    highlightStyle: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 17,
+                      color: Colors.orange,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  _buildHighlightedText(
+                    widget.subtitle,
+                    widget.searchQuery,
+                    normalStyle: const TextStyle(
+                      color: Colors.black54,
+                      fontSize: 15,
+                    ),
+                    highlightStyle: const TextStyle(
+                      color: Colors.orange,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            onPressed: _toggleBookmark,
-            tooltip: _bookmarked ? 'Remove Bookmark' : 'Add Bookmark',
-          ),
-        ],
+            IconButton(
+              icon: Icon(
+                _bookmarked ? Icons.bookmark : Icons.bookmark_border,
+                color: _bookmarked ? const Color(0xFF2ECC71) : Colors.grey,
+                size: 28,
+              ),
+              onPressed: _toggleBookmark,
+              tooltip: _bookmarked ? 'Remove Bookmark' : 'Add Bookmark',
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -5,6 +5,8 @@ import '../components/learninghub/tab_switcher.dart';
 import '../components/learninghub/featured_banner.dart';
 import '../components/learninghub/article_card.dart';
 import '../components/learninghub/guide_card.dart';
+import '../components/learninghub/guide_detail_screen.dart';
+import '../components/learninghub/guides_data.dart';
 
 class LearningHubScreen extends StatefulWidget {
   const LearningHubScreen({super.key});
@@ -56,11 +58,13 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
             children: [
               Image.asset('lib/assets/images/logo.png', height: 32),
               const SizedBox(width: 8),
-              Text("Learning Hub",
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      )),
+              Text(
+                "Learning Hub",
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+              ),
             ],
           ),
           actions: const [
@@ -89,7 +93,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                 child: IndexedStack(
                   index: _selectedTab,
                   children: [
-                    _buildFeaturedTab(),
+                    ArticleCardList(searchQuery: _searchQuery), // ✅ public now
                     _buildGuidesTab(),
                     _buildSavedTab(),
                   ],
@@ -107,10 +111,6 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
 
   // -------- Tabs ----------
 
-  Widget _buildFeaturedTab() {
-    return _ArticleCardList(searchQuery: _searchQuery);
-  }
-
   Widget _buildGuidesTab() {
     final guides = [
       GuideCard(
@@ -126,7 +126,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
       ),
       GuideCard(
         title: "Extend your device lifespan",
-        subtitle: "Tips for maintaining your gadgets to reduce waste and save money",
+        subtitle: "Guide for maintaining your gadgets to reduce waste and save money",
         isBookmarked: true,
         searchQuery: _searchQuery,
       ),
@@ -166,17 +166,34 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
   }
 }
 
-// Add this widget at the end of the file to manage ArticleCard bookmarks.
-class _ArticleCardList extends StatefulWidget {
+// -------- Article List (Featured Tab) ----------
+class ArticleCardList extends StatefulWidget {
   final String searchQuery;
-  const _ArticleCardList({this.searchQuery = ''});
+  const ArticleCardList({this.searchQuery = ''});
 
   @override
-  State<_ArticleCardList> createState() => _ArticleCardListState();
+  State<ArticleCardList> createState() => _ArticleCardListState();
 }
 
-class _ArticleCardListState extends State<_ArticleCardList> {
+class _ArticleCardListState extends State<ArticleCardList> {
   final List<bool> _bookmarked = [false, false];
+
+  void _openGuide(BuildContext context, String title) {
+    // Pick steps based on article title
+    final steps = title == "Smartphone Recycling Guide"
+        ? GuidesData.smartphoneRecyclingSteps
+        : GuidesData.laptopRefurbishingSteps; // ✅ different guides
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => GuideDetailScreen(
+          guideTitle: title,
+          steps: steps,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -187,7 +204,7 @@ class _ArticleCardListState extends State<_ArticleCardList> {
         'time': "5 min read",
       },
       {
-        'title': "Laptop Refurbishing Tips",
+        'title': "Laptop Refurbishing Guide",
         'subtitle': "Transform old laptops into functional devices",
         'time': "8 min read",
       },
@@ -202,7 +219,7 @@ class _ArticleCardListState extends State<_ArticleCardList> {
 
     return ListView(
       children: [
-        const FeaturedBanner(),
+        const FeaturedBanner(), // ✅ clickable banner
         const Padding(
           padding: EdgeInsets.symmetric(vertical: 8),
           child: Text("Trending This Week",
@@ -210,19 +227,22 @@ class _ArticleCardListState extends State<_ArticleCardList> {
         ),
         ...List.generate(filteredArticles.length, (i) {
           final a = filteredArticles[i];
-          // Find the original index to keep bookmarks in sync
           final originalIndex = articles.indexOf(a);
-          return ArticleCard(
-            title: a['title']!,
-            subtitle: a['subtitle']!,
-            time: a['time']!,
-            isBookmarked: _bookmarked[originalIndex],
-            searchQuery: widget.searchQuery,
-            onBookmarkChanged: (val) {
-              setState(() {
-                _bookmarked[originalIndex] = val;
-              });
-            },
+
+          return GestureDetector(
+            onTap: () => _openGuide(context, a['title']!),
+            child: ArticleCard(
+              title: a['title']!,
+              subtitle: a['subtitle']!,
+              time: a['time']!,
+              isBookmarked: _bookmarked[originalIndex],
+              searchQuery: widget.searchQuery,
+              onBookmarkChanged: (val) {
+                setState(() {
+                  _bookmarked[originalIndex] = val;
+                });
+              },
+            ),
           );
         }),
       ],

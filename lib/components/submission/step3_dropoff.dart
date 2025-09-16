@@ -15,25 +15,25 @@ class _Step3DropOffState extends State<Step3DropOff> {
   final List<_Location> _locations = [
     _Location(
       title: "EcoCenter Downtown",
-      subtitle: "0.5 km away – Closest to you\n123 Green Street, Downtown District",
+      subtitle: "0.5 km • 123 Green Street",
       hours: "Open until 8 PM",
       rating: "4.8",
     ),
     _Location(
       title: "RecycleHub Mall",
-      subtitle: "1.2 km away\n456 Shopping Mall, Level 2, East Wing",
+      subtitle: "1.2 km • 456 Shopping Mall, L2",
       hours: "Open until 10 PM",
       rating: "4.6",
     ),
     _Location(
       title: "Green Point Station",
-      subtitle: "2.1 km away\n789 Metro Station, Ground Floor",
+      subtitle: "2.1 km • 789 Metro Station",
       hours: "24/7 Available",
       rating: "4.4",
     ),
     _Location(
       title: "City Hall Collection",
-      subtitle: "3.5 km away\n101 City Hall Plaza, Main Entrance",
+      subtitle: "3.5 km • 101 City Hall Plaza",
       hours: "Open until 6 PM",
       rating: "4.2",
     ),
@@ -43,49 +43,129 @@ class _Step3DropOffState extends State<Step3DropOff> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _buildAppBar(context),
-      backgroundColor: const Color(0xFFF5F6FA),
+      backgroundColor: const Color(0xFFF7F8FA),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const StepperHeader(currentStep: 3),
+            const SizedBox(height: 28),
+            const Text(
+              "Choose drop-off location",
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.2,
+                color: Color(0xFF222B45),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              "Select a nearby center to continue",
+              style: TextStyle(
+                color: Color(0xFF8F9BB3),
+                fontSize: 15,
+              ),
+            ),
             const SizedBox(height: 24),
-
-            const Text(
-              "Where would you like to drop off?",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              "Choose your preferred drop-off location",
-              style: TextStyle(color: Colors.black54),
-            ),
-            const SizedBox(height: 20),
-
             Expanded(
-              child: ListView.builder(
+              child: ListView.separated(
                 itemCount: _locations.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 16),
                 itemBuilder: (context, index) {
                   final location = _locations[index];
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = index;
-                      });
-                    },
-                    child: _buildLocationCard(
-                      location.title,
-                      location.subtitle,
-                      location.hours,
-                      location.rating,
-                      index == _selectedIndex,
+                  final isSelected = index == _selectedIndex;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeInOut,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: [
+                        BoxShadow(
+                          color: isSelected
+                              ? const Color(0x1A2ECC71)
+                              : const Color(0x0A222B45),
+                          blurRadius: isSelected ? 12 : 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                      border: Border.all(
+                        color: isSelected
+                            ? const Color(0xFF2ECC71)
+                            : Colors.transparent,
+                        width: 2,
+                      ),
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 18, vertical: 12),
+                      onTap: () {
+                        setState(() {
+                          _selectedIndex = index;
+                        });
+                      },
+                      leading: CircleAvatar(
+                        backgroundColor: isSelected
+                            ? const Color(0xFF2ECC71)
+                            : const Color(0xFFF7F8FA),
+                        child: Icon(
+                          Icons.location_on,
+                          color: isSelected
+                              ? Colors.white
+                              : const Color(0xFF2ECC71),
+                        ),
+                      ),
+                      title: Text(
+                        location.title,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          color: isSelected
+                              ? const Color(0xFF2ECC71)
+                              : const Color(0xFF222B45),
+                        ),
+                      ),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          "${location.subtitle}\n${location.hours}",
+                          style: const TextStyle(
+                            color: Color(0xFF8F9BB3),
+                            fontSize: 13,
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.star,
+                              color: Colors.amber.shade600, size: 18),
+                          const SizedBox(width: 4),
+                          Text(
+                            location.rating,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 14,
+                              color: Color(0xFF222B45),
+                            ),
+                          ),
+                          if (isSelected)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 10),
+                              child: Icon(Icons.check_circle,
+                                  color: const Color(0xFF2ECC71), size: 22),
+                            ),
+                        ],
+                      ),
                     ),
                   );
                 },
               ),
             ),
-
+            const SizedBox(height: 18),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -97,80 +177,18 @@ class _Step3DropOffState extends State<Step3DropOff> {
                   backgroundColor: const Color(0xFF2ECC71),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
+                  elevation: 0,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(14)),
+                  textStyle: const TextStyle(
+                      fontWeight: FontWeight.w600, fontSize: 16),
                 ),
                 child: const Text("Continue"),
               ),
-            )
+            ),
+            const SizedBox(height: 8),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildLocationCard(String title, String subtitle, String hours,
-      String rating, bool isSelected) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border.all(
-            color: isSelected ? const Color(0xFF2ECC71) : Colors.grey.shade300,
-            width: 2),
-        borderRadius: BorderRadius.circular(12),
-        color: Colors.white,
-        boxShadow: isSelected
-            ? [
-                BoxShadow(
-                  color: const Color(0x332ECC71),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                )
-              ]
-            : [],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(title,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 16)),
-              if (isSelected)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2ECC71),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text("Selected",
-                      style: TextStyle(color: Colors.white, fontSize: 12)),
-                ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(subtitle, style: const TextStyle(color: Colors.black87)),
-          const SizedBox(height: 6),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(hours, style: const TextStyle(color: Colors.black54)),
-              Row(
-                children: [
-                  const Icon(Icons.star,
-                      color: Colors.amber, size: 16),
-                  const SizedBox(width: 4),
-                  Text(rating,
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
-                ],
-              )
-            ],
-          )
-        ],
       ),
     );
   }
@@ -180,12 +198,17 @@ class _Step3DropOffState extends State<Step3DropOff> {
       backgroundColor: Colors.white,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.black),
+        icon: const Icon(Icons.arrow_back, color: Color(0xFF222B45)),
         onPressed: () => Navigator.pop(context),
       ),
-      title: const Text("Recycle Items",
-          style: TextStyle(
-              color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18)),
+      title: const Text(
+        "Recycle Items",
+        style: TextStyle(
+          color: Color(0xFF222B45),
+          fontWeight: FontWeight.w600,
+          fontSize: 18,
+        ),
+      ),
       centerTitle: true,
     );
   }

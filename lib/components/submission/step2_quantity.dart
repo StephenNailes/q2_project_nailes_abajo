@@ -14,73 +14,103 @@ class _Step2QuantityState extends State<Step2Quantity> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: _buildAppBar(context),
-      backgroundColor: const Color(0xFFF5F6FA),
+      backgroundColor: const Color(0xFFF8F9FB),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const StepperHeader(currentStep: 2),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
 
-            const Text(
+            Text(
               "How many items are you recycling?",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: 20,
+                color: Colors.black87,
+              ),
             ),
-            const SizedBox(height: 6),
-            const Text(
+            const SizedBox(height: 8),
+            Text(
               "Select the quantity of items you want to recycle",
-              style: TextStyle(color: Colors.black54),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.black54,
+                fontSize: 15,
+              ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
 
             // Quantity counter
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _circleButton(Icons.remove, () {
-                  setState(() {
-                    if (quantity > 1) quantity--;
-                  });
-                }),
-                const SizedBox(width: 24),
-                Text(
-                  "$quantity",
-                  style: const TextStyle(
-                      fontSize: 28, fontWeight: FontWeight.bold),
+            Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _modernCircleButton(Icons.remove, () {
+                    setState(() {
+                      if (quantity > 1) quantity--;
+                    });
+                  }),
+                  const SizedBox(width: 32),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: Text(
+                      "$quantity",
+                      style: theme.textTheme.displayMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 32,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 32),
+                  _modernCircleButton(Icons.add, () {
+                    setState(() {
+                      quantity++;
+                    });
+                  }),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Center(
+              child: Text(
+                "Items",
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: Colors.black45,
+                  fontSize: 13,
                 ),
-                const SizedBox(width: 24),
-                _circleButton(Icons.add, () {
-                  setState(() {
-                    quantity++;
-                  });
-                }),
-              ],
+              ),
             ),
-            const SizedBox(height: 12),
-            const Center(
-              child: Text("Items",
-                  style: TextStyle(color: Colors.black54, fontSize: 14)),
-            ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
 
             // Info note
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.blue.shade100),
               ),
               child: Row(
-                children: const [
-                  Icon(Icons.info_outline, color: Colors.blue),
-                  SizedBox(width: 8),
+                children: [
+                  Icon(Icons.info_outline, color: Colors.blue.shade400, size: 22),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       "You can add multiple items of the same type. Each item will be processed individually.",
-                      style: TextStyle(color: Colors.black87),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.black87,
+                        fontSize: 15,
+                      ),
                     ),
                   ),
                 ],
@@ -99,13 +129,20 @@ class _Step2QuantityState extends State<Step2Quantity> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2ECC71),
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 18),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  textStyle: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 17,
+                  ),
                 ),
                 child: const Text("Continue"),
               ),
-            )
+            ),
+            const SizedBox(height: 8),
           ],
         ),
       ),
@@ -120,20 +157,42 @@ class _Step2QuantityState extends State<Step2Quantity> {
         icon: const Icon(Icons.arrow_back, color: Colors.black),
         onPressed: () => Navigator.pop(context),
       ),
-      title: const Text("Recycle Items",
-          style: TextStyle(
-              color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18)),
+      title: const Text(
+        "Recycle Items",
+        style: TextStyle(
+          color: Colors.black,
+          fontWeight: FontWeight.w600,
+          fontSize: 19,
+        ),
+      ),
       centerTitle: true,
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(1),
+        child: Container(
+          color: Colors.grey.shade200,
+          height: 1,
+        ),
+      ),
     );
   }
 
-  Widget _circleButton(IconData icon, VoidCallback onPressed) {
-    return CircleAvatar(
-      radius: 20,
-      backgroundColor: Colors.grey.shade200,
-      child: IconButton(
-        icon: Icon(icon, color: Colors.black),
-        onPressed: onPressed,
+  Widget _modernCircleButton(IconData icon, VoidCallback onPressed) {
+    return Material(
+      color: Colors.white,
+      shape: const CircleBorder(),
+      elevation: 0,
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onPressed,
+        child: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(22),
+          ),
+          child: Icon(icon, color: Colors.black87, size: 24),
+        ),
       ),
     );
   }

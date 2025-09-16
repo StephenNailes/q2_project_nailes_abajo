@@ -132,7 +132,9 @@ class ProfileScreen extends StatelessWidget {
                       icon: Icons.note_alt_outlined,
                       iconColor: Color(0xFF5DADE2),
                       title: "My Submissions",
-                      onTap: () {},
+                      onTap: () {
+                        GoRouter.of(context).go('/recycle-history');
+                      },
                     ),
                     const SizedBox(height: 14),
                     _profileOption(

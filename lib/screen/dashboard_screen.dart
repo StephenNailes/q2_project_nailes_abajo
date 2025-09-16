@@ -29,7 +29,7 @@ class DashboardScreen extends StatelessWidget {
               Image.asset('lib/assets/images/logo.png', height: 32),
               const SizedBox(width: 8),
               Text(
-                "EcoSustain",
+                "TechSustain",
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Colors.black,

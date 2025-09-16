@@ -1,84 +1,199 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+
 import 'stepper_header.dart';
 import 'step5_submit.dart';
 
-class Step4Photo extends StatelessWidget {
+class Step4Photo extends StatefulWidget {
   const Step4Photo({super.key});
+
+  @override
+  State<Step4Photo> createState() => _Step4PhotoState();
+}
+
+class _Step4PhotoState extends State<Step4Photo> {
+  File? _imageFile;
+
+  Future<void> _pickImage() async {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt_outlined, color: Color(0xFF2ECC71)),
+                title: const Text('Take a photo', style: TextStyle(fontWeight: FontWeight.w500)),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final picker = ImagePicker();
+                  final pickedFile = await picker.pickImage(
+                    source: ImageSource.camera,
+                    maxWidth: 800,
+                    maxHeight: 800,
+                    imageQuality: 85,
+                  );
+                  if (pickedFile != null) {
+                    setState(() {
+                      _imageFile = File(pickedFile.path);
+                    });
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined, color: Color(0xFF2ECC71)),
+                title: const Text('Choose from gallery', style: TextStyle(fontWeight: FontWeight.w500)),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final picker = ImagePicker();
+                  final pickedFile = await picker.pickImage(
+                    source: ImageSource.gallery,
+                    maxWidth: 800,
+                    maxHeight: 800,
+                    imageQuality: 85,
+                  );
+                  if (pickedFile != null) {
+                    setState(() {
+                      _imageFile = File(pickedFile.path);
+                    });
+                  }
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _buildAppBar(context),
-      backgroundColor: const Color(0xFFF5F6FA),
+      backgroundColor: const Color(0xFFF7F8FA),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const StepperHeader(currentStep: 4),
-            const SizedBox(height: 24),
-
+            const SizedBox(height: 32),
             const Text(
-              "Upload a photo of your item",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              "Upload a photo",
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: Color(0xFF222B45)),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             const Text(
-              "Upload a photo of the recycled item for your records.",
-              style: TextStyle(color: Colors.black54),
+              "Add a photo of your recycled item.",
+              style: TextStyle(color: Color(0xFF8F9BB3), fontSize: 15),
             ),
-            const SizedBox(height: 20),
-
-            // Upload box
-            Container(
-              width: double.infinity,
-              height: 180,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300),
-                borderRadius: BorderRadius.circular(12),
-                color: Colors.white,
-              ),
-              child: const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.camera_alt_outlined,
-                        color: Colors.black54, size: 40),
-                    SizedBox(height: 8),
-                    Text("Tap to upload or take a photo",
-                        style: TextStyle(color: Colors.black54)),
-                    SizedBox(height: 4),
-                    Text("JPG, PNG up to 10MB",
-                        style: TextStyle(color: Colors.black38, fontSize: 12)),
+            const SizedBox(height: 28),
+            GestureDetector(
+              onTap: _pickImage,
+              child: Container(
+                width: double.infinity,
+                height: 200,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: _imageFile == null
+                        ? const Color(0xFFE3E6ED)
+                        : const Color(0xFF2ECC71),
+                    width: 2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 12,
+                      offset: const Offset(0, 2),
+                    ),
                   ],
                 ),
+                child: _imageFile == null
+                    ? Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            child: Icon(Icons.camera_alt_outlined,
+                                color: const Color(0xFF2ECC71), size: 48),
+                          ),
+                          const SizedBox(height: 14),
+                          const Text(
+                            "Tap to upload or take a photo",
+                            style: TextStyle(
+                                color: Color(0xFF8F9BB3),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500),
+                          ),
+                          const SizedBox(height: 6),
+                          const Text(
+                            "JPG, PNG up to 10MB",
+                            style: TextStyle(
+                                color: Color(0xFFBFC8D6), fontSize: 13),
+                          ),
+                        ],
+                      )
+                    : ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.file(
+                          _imageFile!,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: 200,
+                        ),
+                      ),
               ),
             ),
-            const SizedBox(height: 16),
-
-            // Tips
+            const SizedBox(height: 22),
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(12),
+                color: const Color(0xFFEFF4FB),
+                borderRadius: BorderRadius.circular(16),
               ),
-              child: Column(
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text("Photo Tips",
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                  SizedBox(height: 6),
-                  Text("• Take photos in good lighting"),
-                  Text("• Show the entire item clearly"),
-                  Text("• Include any damage or wear"),
+                children: [
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFD2E3FC),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.lightbulb_outline, color: Color(0xFF4285F4), size: 18),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          "Photo Tips",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            color: Color(0xFF222B45),
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        _PhotoTipBullet("Take photos in good lighting"),
+                        _PhotoTipBullet("Show the entire item clearly"),
+                        _PhotoTipBullet("Include any damage or wear"),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
-
             const Spacer(),
-
             Row(
               children: [
                 Expanded(
@@ -91,12 +206,13 @@ class Step4Photo extends StatelessWidget {
                     },
                     style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
+                        side: const BorderSide(color: Color(0xFFE3E6ED)),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12))),
-                    child: const Text("Skip for now"),
+                            borderRadius: BorderRadius.circular(14))),
+                    child: const Text("Skip", style: TextStyle(fontWeight: FontWeight.w500)),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 14),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
@@ -110,13 +226,16 @@ class Step4Photo extends StatelessWidget {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(14)),
+                      elevation: 0,
+                      textStyle: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     child: const Text("Continue"),
                   ),
                 )
               ],
-            )
+            ),
+            const SizedBox(height: 8),
           ],
         ),
       ),
@@ -128,13 +247,45 @@ class Step4Photo extends StatelessWidget {
       backgroundColor: Colors.white,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.black),
+        icon: const Icon(Icons.arrow_back, color: Color(0xFF222B45)),
         onPressed: () => Navigator.pop(context),
       ),
-      title: const Text("Recycle Items",
-          style: TextStyle(
-              color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18)),
+      title: const Text(
+        "Recycle Items",
+        style: TextStyle(
+            color: Color(0xFF222B45),
+            fontWeight: FontWeight.w600,
+            fontSize: 18),
+      ),
       centerTitle: true,
+    );
+  }
+}
+
+class _PhotoTipBullet extends StatelessWidget {
+  final String text;
+  const _PhotoTipBullet(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text("• ", style: TextStyle(color: Color(0xFF6B7A90), fontSize: 15)),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                color: Color(0xFF6B7A90),
+                fontSize: 15,
+                height: 1.5,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

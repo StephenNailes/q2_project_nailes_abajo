@@ -8,6 +8,7 @@ import '../screen/learning_hub_screen.dart';
 import '../screen/eco_tips_screen.dart';
 import '../screen/submission_screen.dart';
 import '../screen/profile_screen.dart';
+import '../screen/recycle_history_screen.dart'; // Add this import
 
 final appRouter = GoRouter(
   initialLocation: '/login',
@@ -39,6 +40,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/profile', // ✅ Added missing profile route
       builder: (context, state) => const ProfileScreen(),
+    ),
+    GoRoute(
+      path: '/recycle-history',
+      builder: (context, state) => const RecycleHistoryScreen(),
     ),
   ],
 );

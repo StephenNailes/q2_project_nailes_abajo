@@ -9,41 +9,50 @@ class Step1Select extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _buildAppBar(context),
-      backgroundColor: const Color(0xFFF5F6FA),
+      backgroundColor: const Color(0xFFF8FAFB),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const StepperHeader(currentStep: 1),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
 
             const Text(
               "What are you recycling?",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.2,
+                color: Colors.black87,
+              ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             const Text(
               "Select the type of item you'd like to recycle",
-              style: TextStyle(color: Colors.black54),
+              style: TextStyle(
+                color: Colors.black45,
+                fontSize: 15,
+                letterSpacing: 0.1,
+              ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 32),
 
             // Options
             _buildOption(
               context,
               Icons.smartphone,
               "Mobile Phone",
-              "Smartphones, feature phones",
+              "Smartphones",
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             _buildOption(
               context,
               Icons.power,
               "Charger",
-              "Phone chargers, cables",
+              "Phone chargers, cables, batteries",
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             _buildOption(
               context,
               Icons.laptop_mac,
@@ -62,60 +71,58 @@ class Step1Select extends StatelessWidget {
     String title,
     String subtitle,
   ) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const Step2Quantity()),
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300, width: 1.2),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 6,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.green.shade50,
-                borderRadius: BorderRadius.circular(12),
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const Step2Quantity()),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 18),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEAF7F0),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: const Color(0xFF27AE60), size: 28),
               ),
-              child: Icon(icon, color: const Color(0xFF2ECC71), size: 28),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(color: Colors.black54, fontSize: 13),
-                  ),
-                ],
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        color: Colors.black38,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const Icon(Icons.arrow_forward_ios,
-                color: Colors.black38, size: 18),
-          ],
+              const Icon(Icons.arrow_forward_ios,
+                  color: Colors.black26, size: 18),
+            ],
+          ),
         ),
       ),
     );
@@ -126,15 +133,16 @@ class Step1Select extends StatelessWidget {
       backgroundColor: Colors.white,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.black),
+        icon: const Icon(Icons.arrow_back, color: Colors.black87),
         onPressed: () => Navigator.pop(context),
       ),
       title: const Text(
         "Recycle Items",
         style: TextStyle(
-          color: Colors.black,
-          fontWeight: FontWeight.bold,
-          fontSize: 18,
+          color: Colors.black87,
+          fontWeight: FontWeight.w600,
+          fontSize: 19,
+          letterSpacing: 0.1,
         ),
       ),
       centerTitle: true,
