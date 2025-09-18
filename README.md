@@ -1,4 +1,4 @@
-# eco_sustain
+# tech_sustain
 
 A new Flutter project.
 
