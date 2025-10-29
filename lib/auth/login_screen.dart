@@ -96,7 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
         // Log error but don't block navigation - profile can be created later
         debugPrint('⚠️ Supabase profile creation failed: $supabaseError');
       }
-      
+                   
       if (mounted) {
         debugPrint('🔵 Navigating to /home');
         context.go('/home');
@@ -115,44 +115,6 @@ class _LoginScreenState extends State<LoginScreen> {
           _isLoading = false;
         });
       }
-    }
-  }
-
-  Future<void> _handleForgotPassword() async {
-    final email = _emailController.text.trim();
-    
-    if (email.isEmpty) {
-      setState(() {
-        _errorMessage = 'Please enter your email address';
-      });
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      await _authService.sendPasswordResetEmail(email);
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Password reset email sent! Check your inbox.'),
-            backgroundColor: Color(0xFF2ECC71),
-            duration: Duration(seconds: 4),
-          ),
-        );
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = _getErrorMessage(e.toString());
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 
@@ -327,7 +289,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: _isLoading ? null : _handleForgotPassword,
+                      onPressed: () => context.go('/forgot-password'),
                       style: TextButton.styleFrom(
                         foregroundColor: const Color(0xFF2ECC71),
                         padding: EdgeInsets.zero,

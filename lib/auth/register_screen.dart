@@ -90,41 +90,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  Future<void> _handleGoogleSignUp() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final userCredential = await _authService.signInWithGoogle();
-      
-      // Create/update user profile in Supabase
-      if (userCredential != null && userCredential.user != null) {
-        final userModel = UserModel(
-          id: userCredential.user!.uid,
-          name: userCredential.user!.displayName ?? 'User',
-          email: userCredential.user!.email!,
-          profileImageUrl: userCredential.user!.photoURL,
-          totalRecycled: 0,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        );
-        
-        await _supabaseService.createOrUpdateUserProfile(userModel);
-      }
-      
-      if (mounted) {
-        context.go('/home');
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = _getErrorMessage(e.toString());
-        _isLoading = false;
-      });
-    }
-  }
-
   String _getErrorMessage(String error) {
     if (error.contains('email-already-in-use')) {
       return 'This email is already registered';
@@ -446,50 +411,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-
-                  // Divider with text
-                  Row(
-                    children: [
-                      const Expanded(child: Divider(thickness: 1)),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                        child: Text(
-                          "Or sign up with",
-                          style: TextStyle(color: Colors.grey[500], fontSize: 13),
-                        ),
-                      ),
-                      const Expanded(child: Divider(thickness: 1)),
-                    ],
-                  ),
-                  const SizedBox(height: 18),
-
-                  // Google Sign-in button
-                  OutlinedButton.icon(
-                    onPressed: _isLoading ? null : _handleGoogleSignUp,
-                    icon: Image.asset(
-                      'lib/assets/images/Google__G__logo.png',
-                      height: 24,
-                      width: 24,
-                    ),
-                    label: const Text(
-                      "Sign up with Google",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                        fontSize: 15,
-                      ),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      side: const BorderSide(color: Colors.grey),
-                      minimumSize: const Size(double.infinity, 50),
-                      backgroundColor: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
                 ],
               ),
             ),

@@ -84,11 +84,15 @@ class FirebaseAuthService {
   // ============================================
 
   /// Sign in with Google
+  /// Always shows account picker, allowing user to choose or add a different account
   Future<UserCredential?> signInWithGoogle() async {
     try {
       debugPrint('🔵 FirebaseAuthService: Initiating Google Sign-In...');
       
-      // Trigger the authentication flow
+      // Sign out from Google first to force account selection
+      await _googleSignIn.signOut();
+      
+      // Trigger the authentication flow - will always show account picker
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {

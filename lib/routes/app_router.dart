@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 // Import your screens
 import '../auth/login_screen.dart';
 import '../auth/register_screen.dart';
+import '../auth/forgot_password_screen.dart';
 import '../screen/dashboard_screen.dart';
 import '../screen/learning_hub_screen.dart';
 import '../screen/eco_tips_screen.dart';
@@ -26,6 +27,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/register',
       builder: (context, state) => const RegisterScreen(),
+    ),
+    GoRoute(
+      path: '/forgot-password',
+      builder: (context, state) => const ForgotPasswordScreen(),
     ),
     GoRoute(
       path: '/home', // Bottom nav home/dashboard

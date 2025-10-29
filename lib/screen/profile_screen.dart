@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../components/eco_bottom_nav.dart';
+import '../services/firebase_auth_service.dart';
 import '../services/firebase_storage_service.dart';
 import '../services/supabase_service.dart';
 
@@ -15,6 +16,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  final FirebaseAuthService _authService = FirebaseAuthService();
   final FirebaseStorageService _storageService = FirebaseStorageService();
   final SupabaseService _supabaseService = SupabaseService();
   final ImagePicker _imagePicker = ImagePicker();
@@ -334,9 +336,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                                 TextButton(
                                   child: const Text("Log Out"),
-                                  onPressed: () {
+                                  onPressed: () async {
                                     Navigator.of(dialogContext).pop();
-                                    GoRouter.of(context).go('/login');
+                                    
+                                    // Show loading indicator
+                                    if (context.mounted) {
+                                      showDialog(
+                                        context: context,
+                                        barrierDismissible: false,
+                                        builder: (context) => const Center(
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                      );
+                                    }
+                                    
+                                    try {
+                                      // Sign out from Firebase Auth and Google
+                                      await _authService.signOut();
+                                      
+                                      // Navigate to login screen
+                                      if (context.mounted) {
+                                        Navigator.of(context).pop(); // Close loading
+                                        GoRouter.of(context).go('/login');
+                                      }
+                                    } catch (e) {
+                                      if (context.mounted) {
+                                        Navigator.of(context).pop(); // Close loading
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Logout failed: ${e.toString()}'),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
+                                    }
                                   },
                                 ),
                               ],
