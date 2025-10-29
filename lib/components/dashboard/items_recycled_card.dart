@@ -9,10 +9,10 @@ class ItemsRecycledCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(20),
       ),
-      elevation: 8,
-      shadowColor: Colors.greenAccent.withOpacity(0.2),
+      elevation: 6,
+      shadowColor: Colors.greenAccent.withValues(alpha: 0.2),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 24),
         child: Row(

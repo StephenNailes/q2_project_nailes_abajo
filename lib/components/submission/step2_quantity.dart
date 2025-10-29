@@ -30,7 +30,7 @@ class _Step2QuantityState extends State<Step2Quantity> {
               "How many items are you recycling?",
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
-                fontSize: 20,
+                fontSize: 20, 
                 color: Colors.black87,
               ),
             ),

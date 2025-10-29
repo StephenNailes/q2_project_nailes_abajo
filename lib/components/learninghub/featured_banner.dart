@@ -29,7 +29,7 @@ class FeaturedBanner extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 12,
               offset: const Offset(0, 6),
             ),
@@ -49,8 +49,8 @@ class FeaturedBanner extends StatelessWidget {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        Colors.black.withOpacity(0.65),
-                        Colors.black.withOpacity(0.0),
+                        Colors.black.withValues(alpha: 0.65),
+                        Colors.black.withValues(alpha: 0.0),
                       ],
                       begin: Alignment.bottomLeft,
                       end: Alignment.topRight,

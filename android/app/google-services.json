@@ -1,0 +1,76 @@
+{
+  "project_info": {
+    "project_number": "851189435727",
+    "project_id": "eco-sustain-51b9b",
+    "storage_bucket": "eco-sustain-51b9b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:851189435727:android:f580ac8729c44a5fff493a",
+        "android_client_info": {
+          "package_name": "com.example.eco_sustain"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "851189435727-p03698h7e1573jqh1phuvasb7iho5d13.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.eco_sustain",
+            "certificate_hash": "9298bdb3aceea14a712c699c4db88b80817cefc0"
+          }
+        },
+        {
+          "client_id": "851189435727-t4j3rbum1e0vrqqtqh1gotvrkg4r1udv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCtYO930CM6Ctk8SdK9l3RrDF2uz1FfqKo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "851189435727-t4j3rbum1e0vrqqtqh1gotvrkg4r1udv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:851189435727:android:2fde09413dd8d1d4ff493a",
+        "android_client_info": {
+          "package_name": "ecosustain.com"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "851189435727-t4j3rbum1e0vrqqtqh1gotvrkg4r1udv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCtYO930CM6Ctk8SdK9l3RrDF2uz1FfqKo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "851189435727-t4j3rbum1e0vrqqtqh1gotvrkg4r1udv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -65,7 +65,7 @@ class _EcoFeaturedListState extends State<EcoFeaturedList> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
+                  color: Colors.black.withValues(alpha: 0.08),
                   blurRadius: 12,
                   offset: const Offset(0, 6),
                 ),
@@ -78,9 +78,9 @@ class _EcoFeaturedListState extends State<EcoFeaturedList> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
                     gradient: LinearGradient(
-                      colors: [
-                        Colors.black.withOpacity(0.7),
-                        Colors.black.withOpacity(0.2),
+                    colors: [
+                      Colors.black.withValues(alpha: 0.7),
+                      Colors.black.withValues(alpha: 0.2),
                         Colors.transparent,
                       ],
                       begin: Alignment.bottomCenter,
@@ -99,7 +99,7 @@ class _EcoFeaturedListState extends State<EcoFeaturedList> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.18),
+                          color: Colors.white.withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Text(
@@ -154,7 +154,7 @@ class _EcoFeaturedListState extends State<EcoFeaturedList> {
             },
             searchQuery: widget.searchQuery, // 🔍 pass query for highlighting
           );
-        }).toList(),
+        }),
         if (filteredTips.isEmpty)
           const Center(
             child: Padding(

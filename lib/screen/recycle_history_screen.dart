@@ -103,7 +103,7 @@ class RecycleHistoryScreen extends StatelessWidget {
                   color: Colors.transparent,
                   child: ListView.separated(
                     itemCount: historyItems.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 16),
+                    separatorBuilder: (_, _) => const SizedBox(height: 16),
                     itemBuilder: (context, index) {
                       final item = historyItems[index];
                       return RecycleHistoryCard(

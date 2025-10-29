@@ -163,7 +163,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
 // -------- Article List (Featured Tab) ----------
 class ArticleCardList extends StatefulWidget {
   final String searchQuery;
-  const ArticleCardList({this.searchQuery = ''});
+  const ArticleCardList({super.key, this.searchQuery = ''});
 
   @override
   State<ArticleCardList> createState() => _ArticleCardListState();

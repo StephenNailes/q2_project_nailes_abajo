@@ -14,6 +14,7 @@ import '../screen/edit_profile_screen.dart';
 import '../screen/change_password_screen.dart';
 import '../screen/manage_email_screen.dart';
 import '../screen/notification_screen.dart'; // ✅ New
+import '../screen/connection_test_screen.dart'; // ✅ Test screen
 
 final appRouter = GoRouter(
   initialLocation: '/login',
@@ -73,6 +74,12 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/notifications',
       builder: (context, state) => const NotificationScreen(),
+    ),
+    
+    // ✅ Connection Test
+    GoRoute(
+      path: '/test',
+      builder: (context, state) => const ConnectionTestScreen(),
     ),
   ],
 );

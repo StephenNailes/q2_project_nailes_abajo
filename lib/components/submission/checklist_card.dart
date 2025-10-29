@@ -38,7 +38,7 @@ class ChecklistCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 20),
-            ...items.map((text) => _buildChecklistItem(text)).toList(),
+            ...items.map((text) => _buildChecklistItem(text)),
           ],
         ),
       ),

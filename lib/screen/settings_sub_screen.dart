@@ -6,10 +6,10 @@ class SettingsSubScreen extends StatelessWidget {
   final Widget child;
 
   const SettingsSubScreen({
-    Key? key,
+    super.key,
     required this.title,
     required this.child,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

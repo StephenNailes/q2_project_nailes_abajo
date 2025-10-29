@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'settings_sub_screen.dart';
+import '../services/firebase_auth_service.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
-  const ChangePasswordScreen({Key? key}) : super(key: key);
+  const ChangePasswordScreen({super.key});
 
   @override
   State<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
@@ -13,6 +14,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final TextEditingController _current = TextEditingController();
   final TextEditingController _newPass = TextEditingController();
   final TextEditingController _confirm = TextEditingController();
+  final FirebaseAuthService _authService = FirebaseAuthService();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -22,11 +25,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     super.dispose();
   }
 
-  void _save() {
+  Future<void> _save() async {
+    final currentPass = _current.text.trim();
     final newPass = _newPass.text.trim();
     final confirm = _confirm.text.trim();
 
-    if (newPass.isEmpty || confirm.isEmpty) {
+    if (currentPass.isEmpty || newPass.isEmpty || confirm.isEmpty) {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Please fill all fields')));
       return;
@@ -36,11 +40,48 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           .showSnackBar(const SnackBar(content: Text('New passwords do not match')));
       return;
     }
+    if (newPass.length < 6) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Password must be at least 6 characters')));
+      return;
+    }
 
-    // TODO: call change password API or local logic
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Password changed')));
-    context.go('/settings');
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Change password using Firebase Auth
+      await _authService.changePassword(
+        currentPassword: currentPass,
+        newPassword: newPass,
+      );
+      
+      if (!mounted) return;
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password changed successfully'),
+          backgroundColor: Color(0xFF2ECC71),
+        ),
+      );
+      context.go('/settings');
+    } catch (e) {
+      if (!mounted) return;
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -95,13 +136,22 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: _save,
+              onPressed: _isLoading ? null : _save,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF2ECC71),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              child: const Text('Save', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              child: _isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text('Save', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             ),
           ),
         ],

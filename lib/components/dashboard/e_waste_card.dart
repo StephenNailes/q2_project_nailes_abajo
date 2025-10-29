@@ -13,7 +13,7 @@ class EWasteCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       elevation: 6,
-      shadowColor: Colors.orangeAccent.withOpacity(0.2),
+      shadowColor: Colors.orangeAccent.withValues(alpha: 0.2),
       child: SizedBox(
         height: 200,
         child: Padding(

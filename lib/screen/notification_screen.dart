@@ -76,7 +76,7 @@ class NotificationScreen extends StatelessWidget {
                 children: [
                   Container(
                     decoration: BoxDecoration(
-                      color: (item["color"] as Color).withOpacity(0.15),
+                      color: (item["color"] as Color).withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     padding: const EdgeInsets.all(10),

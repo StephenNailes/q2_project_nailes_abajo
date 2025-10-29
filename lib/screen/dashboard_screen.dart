@@ -1,13 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../components/eco_bottom_nav.dart';
 import '../components/dashboard/items_recycled_card.dart';
 import '../components/dashboard/eco_tip_card.dart';
 import '../components/dashboard/e_waste_card.dart';
 import '../components/dashboard/welcome_section.dart';
+import '../services/supabase_service.dart';
+import '../models/user_model.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  final SupabaseService _supabaseService = SupabaseService();
+  UserModel? _userProfile;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
+  }
+
+  Future<void> _loadUserProfile() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final profile = await _supabaseService.getUserProfile(user.uid);
+        setState(() {
+          _userProfile = profile;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  String _getFirstName(String? fullName) {
+    if (fullName == null || fullName.isEmpty) return 'User';
+    return fullName.split(' ').first;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,12 +102,16 @@ class DashboardScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 👋 Welcome Section
-                const WelcomeSection(
-                  userName: "Kert", // later fetch from backend/user state
-                  profileImage: "lib/assets/images/kert.jpg",
-                ),
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : WelcomeSection(
+                        userName: _getFirstName(_userProfile?.name),
+                        profileImageUrl: _userProfile?.profileImageUrl,
+                      ),
 
-                const ItemsRecycledCard(count: "16"),
+                ItemsRecycledCard(
+                  count: _userProfile?.totalRecycled.toString() ?? "0",
+                ),
                 const SizedBox(height: 24),
 
                 Flexible(

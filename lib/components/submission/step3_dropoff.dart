@@ -72,7 +72,7 @@ class _Step3DropOffState extends State<Step3DropOff> {
             Expanded(
               child: ListView.separated(
                 itemCount: _locations.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 16),
+                separatorBuilder: (_, _) => const SizedBox(height: 16),
                 itemBuilder: (context, index) {
                   final location = _locations[index];
                   final isSelected = index == _selectedIndex;

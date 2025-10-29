@@ -1,9 +1,132 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../components/eco_bottom_nav.dart';
+import '../services/firebase_storage_service.dart';
+import '../services/supabase_service.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  final FirebaseStorageService _storageService = FirebaseStorageService();
+  final SupabaseService _supabaseService = SupabaseService();
+  final ImagePicker _imagePicker = ImagePicker();
+  bool _isUploading = false;
+  bool _isLoadingProfile = true;
+  String? _profileImageUrl;
+  String _userName = '';
+  String _userEmail = '';
+  int _totalRecycled = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
+  }
+
+  Future<void> _loadUserProfile() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      // Get user profile from Supabase
+      final userProfile = await _supabaseService.getUserProfile(user.uid);
+      
+      if (mounted) {
+        setState(() {
+          _profileImageUrl = userProfile?.profileImageUrl;
+          _userName = userProfile?.name ?? user.displayName ?? 'User';
+          _userEmail = user.email ?? '';
+          _totalRecycled = userProfile?.totalRecycled ?? 0;
+          _isLoadingProfile = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          // Fallback to Firebase Auth data
+          final user = FirebaseAuth.instance.currentUser;
+          _userName = user?.displayName ?? 'User';
+          _userEmail = user?.email ?? '';
+          _isLoadingProfile = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _pickAndUploadImage() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please log in to update profile picture')),
+        );
+        return;
+      }
+
+      // Pick image from gallery
+      final XFile? pickedFile = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 85,
+      );
+
+      if (pickedFile == null) return;
+
+      setState(() {
+        _isUploading = true;
+      });
+
+      // Upload to Firebase Storage
+      final File imageFile = File(pickedFile.path);
+      final String downloadUrl = await _storageService.uploadProfilePicture(
+        user.uid,
+        imageFile,
+      );
+
+      // Update in Supabase
+      await _supabaseService.updateUserProfile(
+        userId: user.uid,
+        profileImageUrl: downloadUrl,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _profileImageUrl = downloadUrl;
+        _isUploading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Profile picture updated successfully'),
+          backgroundColor: Color(0xFF2ECC71),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isUploading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to update profile picture: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,16 +180,32 @@ class ProfileScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-                        child: const CircleAvatar(
-                          radius: 54,
-                          backgroundImage:
-                              AssetImage("lib/assets/images/kert.jpg"),
-                        ),
+                        child: _isUploading
+                            ? const SizedBox(
+                                width: 108,
+                                height: 108,
+                                child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2ECC71)),
+                                  strokeWidth: 4,
+                                ),
+                              )
+                            : _profileImageUrl != null && _profileImageUrl!.isNotEmpty
+                                ? CircleAvatar(
+                                    radius: 54,
+                                    backgroundImage: NetworkImage(_profileImageUrl!),
+                                  )
+                                : CircleAvatar(
+                                    radius: 54,
+                                    backgroundColor: Colors.white,
+                                    child: Icon(
+                                      Icons.person,
+                                      size: 54,
+                                      color: Color(0xFF2ECC71),
+                                    ),
+                                  ),
                       ),
                       GestureDetector(
-                        onTap: () {
-                          // TODO: Implement edit profile picture
-                        },
+                        onTap: _isUploading ? null : _pickAndUploadImage,
                         child: Container(
                           decoration: BoxDecoration(
                             color: Colors.white,
@@ -82,9 +221,9 @@ class ProfileScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 18),
-                  const Text(
-                    "Kert Abajo",
-                    style: TextStyle(
+                  Text(
+                    _isLoadingProfile ? 'Loading...' : _userName,
+                    style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -92,11 +231,27 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  const Text(
-                    "kert.abajo@email.com",
-                    style: TextStyle(
+                  Text(
+                    _isLoadingProfile ? '' : _userEmail,
+                    style: const TextStyle(
                       color: Colors.white70,
                       fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '$_totalRecycled Items Recycled',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ],
@@ -217,7 +372,7 @@ class ProfileScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 18),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.95),
+          color: Colors.white.withValues(alpha: 0.95),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -231,7 +386,7 @@ class ProfileScreen extends StatelessWidget {
           children: [
             Container(
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.12),
+                color: iconColor.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
               padding: const EdgeInsets.all(10),

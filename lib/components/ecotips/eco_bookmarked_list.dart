@@ -54,7 +54,7 @@ class _EcoBookmarkedListState extends State<EcoBookmarkedList> {
             },
             searchQuery: widget.searchQuery, // 🔍 pass query for highlighting
           );
-        }).toList(),
+        }),
         if (filteredTips.isEmpty)
           const Center(
             child: Padding(

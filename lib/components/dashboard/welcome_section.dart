@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 class WelcomeSection extends StatelessWidget {
   final String userName;
-  final String profileImage;
+  final String? profileImageUrl;
 
   const WelcomeSection({
     super.key,
     required this.userName,
-    required this.profileImage,
+    this.profileImageUrl,
   });
 
   @override
@@ -20,7 +20,7 @@ class WelcomeSection extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -30,7 +30,13 @@ class WelcomeSection extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 28,
-            backgroundImage: AssetImage(profileImage), // or NetworkImage
+            backgroundColor: Colors.grey[300],
+            backgroundImage: profileImageUrl != null && profileImageUrl!.isNotEmpty
+                ? NetworkImage(profileImageUrl!)
+                : null,
+            child: profileImageUrl == null || profileImageUrl!.isEmpty
+                ? const Icon(Icons.person, size: 32, color: Colors.white)
+                : null,
           ),
           const SizedBox(width: 16),
           Expanded(
