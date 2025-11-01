@@ -35,6 +35,7 @@ dependencies:
   # Learning content packages
   youtube_player_flutter: ^9.0.3  # YouTube video player
   flutter_markdown: ^0.7.4+1      # Markdown renderer for articles
+  markdown: ^7.2.2                # Markdown parser (required for custom builders)
   url_launcher: ^6.3.1            # Launch URLs
   flutter_quill: ^11.5.0          # Rich text editor (for admin panel)
   cached_network_image: ^3.4.1   # Cache images for better performance

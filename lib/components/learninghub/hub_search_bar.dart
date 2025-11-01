@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class HubSearchBar extends StatelessWidget {
+class HubSearchBar extends StatefulWidget {
   final TextEditingController? controller;
   final VoidCallback? onClear;
 
@@ -11,20 +11,41 @@ class HubSearchBar extends StatelessWidget {
   });
 
   @override
+  State<HubSearchBar> createState() => _HubSearchBarState();
+}
+
+class _HubSearchBarState extends State<HubSearchBar> {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller?.addListener(_onTextChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.controller?.removeListener(_onTextChanged);
+    super.dispose();
+  }
+
+  void _onTextChanged() {
+    setState(() {}); // Rebuild to show/hide clear button
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Material(
       elevation: 2,
       borderRadius: BorderRadius.circular(30),
       child: TextField(
-        controller: controller,
+        controller: widget.controller,
         decoration: InputDecoration(
-          hintText: "Search Guides",
+          hintText: "Search by title or topics...",
           hintStyle: const TextStyle(color: Colors.black38, fontSize: 16),
           prefixIcon: const Icon(Icons.search, color: Colors.green),
-          suffixIcon: controller != null && controller!.text.isNotEmpty
+          suffixIcon: widget.controller != null && widget.controller!.text.isNotEmpty
               ? IconButton(
                   icon: const Icon(Icons.clear, color: Colors.black38),
-                  onPressed: onClear,
+                  onPressed: widget.onClear,
                 )
               : null,
           contentPadding:

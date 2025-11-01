@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:markdown/markdown.dart' as md;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/learning_content_model.dart';
 import '../../services/supabase_service.dart';
+import 'custom_image_builder.dart';
 
 /// Article viewer screen with markdown rendering
 class ArticleViewerScreen extends StatefulWidget {

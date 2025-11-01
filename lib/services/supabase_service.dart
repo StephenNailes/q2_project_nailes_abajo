@@ -138,15 +138,50 @@ class SupabaseService {
   /// Get user profile
   Future<UserModel?> getUserProfile(String userId) async {
     try {
+      debugPrint('🔵 SupabaseService: Fetching profile for user: $userId');
+      
       final response = await _client
           .from('user_profiles')
           .select()
           .eq('id', userId)
-          .single();
+          .maybeSingle(); // Use maybeSingle() instead of single() to allow null
+
+      if (response == null) {
+        debugPrint('⚠️ SupabaseService: No profile found for user: $userId');
+        // Try to get user info from Firebase Auth and create profile
+        final user = _client.auth.currentUser;
+        if (user != null) {
+          debugPrint('🔵 Creating profile for user from auth data...');
+          final name = user.userMetadata?['name'] as String? ?? 
+                      user.email?.split('@').first ?? 
+                      'User';
+          final email = user.email ?? '';
+          
+          // Create profile
+          await _createUserProfile(
+            userId: userId,
+            email: email,
+            name: name,
+          );
+          
+          // Fetch the newly created profile
+          final newProfile = await _client
+              .from('user_profiles')
+              .select()
+              .eq('id', userId)
+              .maybeSingle();
+              
+          if (newProfile != null) {
+            return UserModel.fromJson(newProfile, userId);
+          }
+        }
+        return null;
+      }
 
       return UserModel.fromJson(response, userId);
     } catch (e) {
-      throw Exception('Failed to get user profile: $e');
+      debugPrint('❌ SupabaseService: Failed to get user profile: $e');
+      return null; // Return null instead of throwing to allow app to function
     }
   }
 

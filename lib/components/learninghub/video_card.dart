@@ -239,6 +239,39 @@ class _VideoCardState extends State<VideoCard> {
                     ),
                   ),
                 ),
+                
+                // Bookmark button (top right)
+                if (widget.onBookmark != null)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: widget.onBookmark,
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.9),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.15),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            widget.isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                            color: widget.isBookmarked ? const Color(0xFF2ECC71) : Colors.grey[700],
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
             
@@ -331,21 +364,6 @@ class _VideoCardState extends State<VideoCard> {
                       ),
                     ],
                   ),
-                  
-                  // Bookmark button (separate row)
-                  if (widget.onBookmark != null)
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: IconButton(
-                        icon: Icon(
-                          widget.isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                          color: widget.isBookmarked ? const Color(0xFF2ECC71) : Colors.grey[400],
-                        ),
-                        onPressed: widget.onBookmark,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                    ),
                 ],
               ),
             ),

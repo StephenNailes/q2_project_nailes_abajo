@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/supabase_service.dart';
+import '../../services/youtube_service.dart';
 import '../../config/admin_config.dart';
 
 class VideoFormScreen extends StatefulWidget {
@@ -25,6 +26,7 @@ class _VideoFormScreenState extends State<VideoFormScreen> {
   String _selectedCategory = 'smartphone';
   bool _isFeatured = false;
   bool _isSaving = false;
+  bool _isFetchingMetadata = false;
 
   @override
   void initState() {
@@ -84,6 +86,55 @@ class _VideoFormScreenState extends State<VideoFormScreen> {
 
     // If no URL pattern matches, assume it's already a video ID
     return input.trim();
+  }
+
+  Future<void> _fetchYouTubeMetadata() async {
+    final url = _youtubeIdController.text.trim();
+    if (url.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a YouTube URL first'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isFetchingMetadata = true);
+
+    try {
+      final metadata = await YouTubeService.fetchVideoMetadata(url);
+      
+      if (metadata != null && mounted) {
+        setState(() {
+          _titleController.text = metadata['title'] ?? '';
+          _descriptionController.text = metadata['description'] ?? '';
+          _authorController.text = metadata['author'] ?? '';
+          _durationController.text = YouTubeService.formatDuration(metadata['duration'] ?? 0);
+          _youtubeIdController.text = metadata['videoId'] ?? url;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Video metadata fetched successfully!'),
+            backgroundColor: Color(0xFF2ECC71),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to fetch metadata: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isFetchingMetadata = false);
+      }
+    }
   }
 
   Future<void> _saveVideo() async {
@@ -190,24 +241,48 @@ class _VideoFormScreenState extends State<VideoFormScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      TextFormField(
-                        controller: _youtubeIdController,
-                        decoration: const InputDecoration(
-                          labelText: 'YouTube URL or Video ID',
-                          hintText: 'https://www.youtube.com/watch?v=... or dQw4w9WgXcQ',
-                          prefixIcon: Icon(Icons.video_library),
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter a YouTube URL or video ID';
-                          }
-                          return null;
-                        },
-                        onChanged: (value) {
-                          // Show preview when ID is entered
-                          setState(() {});
-                        },
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _youtubeIdController,
+                              decoration: const InputDecoration(
+                                labelText: 'YouTube URL or Video ID',
+                                hintText: 'https://www.youtube.com/watch?v=...',
+                                prefixIcon: Icon(Icons.video_library),
+                                border: OutlineInputBorder(),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter a YouTube URL or video ID';
+                                }
+                                return null;
+                              },
+                              onChanged: (value) {
+                                // Show preview when ID is entered
+                                setState(() {});
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          ElevatedButton.icon(
+                            onPressed: _isFetchingMetadata ? null : _fetchYouTubeMetadata,
+                            icon: _isFetchingMetadata
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Icon(Icons.auto_awesome),
+                            label: Text(_isFetchingMetadata ? 'Fetching...' : 'Auto-fill'),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                            ),
+                          ),
+                        ],
                       ),
                       
                       // YouTube preview

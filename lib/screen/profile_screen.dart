@@ -37,27 +37,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _loadUserProfile() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return;
+      if (user == null) {
+        if (mounted) {
+          setState(() => _isLoadingProfile = false);
+        }
+        return;
+      }
+
+      debugPrint('📱 Loading profile for user: ${user.uid}');
 
       // Get user profile from Supabase
       final userProfile = await _supabaseService.getUserProfile(user.uid);
       
       if (mounted) {
         setState(() {
-          _profileImageUrl = userProfile?.profileImageUrl;
-          _userName = userProfile?.name ?? user.displayName ?? 'User';
+          _profileImageUrl = userProfile?.profileImageUrl ?? user.photoURL;
+          _userName = userProfile?.name ?? user.displayName ?? user.email?.split('@').first ?? 'User';
           _userEmail = user.email ?? '';
           _totalDisposed = userProfile?.totalDisposed ?? 0;
           _isLoadingProfile = false;
         });
+        
+        debugPrint('✅ Profile loaded: $_userName');
       }
     } catch (e) {
+      debugPrint('❌ Error loading profile: $e');
       if (mounted) {
         setState(() {
           // Fallback to Firebase Auth data
           final user = FirebaseAuth.instance.currentUser;
-          _userName = user?.displayName ?? 'User';
+          _profileImageUrl = user?.photoURL;
+          _userName = user?.displayName ?? user?.email?.split('@').first ?? 'User';
           _userEmail = user?.email ?? '';
+          _totalDisposed = 0;
           _isLoadingProfile = false;
         });
       }

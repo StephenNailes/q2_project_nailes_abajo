@@ -32,6 +32,9 @@ dependencies:
   # HTTP requests for YouTube API
   http: ^1.2.0
   
+  # Environment variables
+  flutter_dotenv: ^5.2.1
+  
   # Charts for Analytics Dashboard
   fl_chart: ^0.69.0
 
@@ -42,3 +45,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  
+  assets:
+    - .env

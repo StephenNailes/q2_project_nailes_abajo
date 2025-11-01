@@ -24,6 +24,9 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
   String _searchQuery = '';
   final Set<String> _bookmarkedIds = {};
   
+  // Filter state
+  String? _selectedCategory; // null means "All Categories"
+  
   // Loading and data states
   bool _isLoadingVideos = true;
   bool _isLoadingArticles = true;
@@ -113,6 +116,135 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
     });
   }
   
+  void _showFilterBottomSheet() {
+    final categories = [
+      {'key': null, 'name': 'All Categories', 'icon': Icons.apps},
+      {'key': 'smartphone', 'name': 'Smartphones', 'icon': Icons.phone_android},
+      {'key': 'laptop', 'name': 'Laptops', 'icon': Icons.laptop},
+      {'key': 'tablet', 'name': 'Tablets', 'icon': Icons.tablet},
+      {'key': 'charger', 'name': 'Chargers', 'icon': Icons.power},
+      {'key': 'battery', 'name': 'Batteries', 'icon': Icons.battery_charging_full},
+      {'key': 'cable', 'name': 'Cables', 'icon': Icons.cable},
+      {'key': 'general', 'name': 'General', 'icon': Icons.category},
+    ];
+    
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.7,
+        ),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Row(
+                children: [
+                  const Icon(Icons.filter_list, color: Color(0xFF2ECC71)),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Filter by Category',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const Spacer(),
+                  if (_selectedCategory != null)
+                    TextButton(
+                      onPressed: () {
+                        setState(() => _selectedCategory = null);
+                        Navigator.pop(context);
+                      },
+                      child: const Text(
+                        'Clear',
+                        style: TextStyle(color: Color(0xFF2ECC71)),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            
+            // Scrollable category list
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                child: Column(
+                  children: categories.map((category) {
+                    final isSelected = _selectedCategory == category['key'];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: InkWell(
+                        onTap: () {
+                          setState(() => _selectedCategory = category['key'] as String?);
+                          Navigator.pop(context);
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          decoration: BoxDecoration(
+                            color: isSelected 
+                                ? const Color(0xFF2ECC71).withValues(alpha: 0.15)
+                                : Colors.grey[50],
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isSelected 
+                                  ? const Color(0xFF2ECC71)
+                                  : Colors.transparent,
+                              width: 2,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                category['icon'] as IconData,
+                                color: isSelected 
+                                    ? const Color(0xFF2ECC71)
+                                    : Colors.grey[600],
+                                size: 22,
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                category['name'] as String,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                  color: isSelected 
+                                      ? const Color(0xFF2ECC71)
+                                      : Colors.black87,
+                                ),
+                              ),
+                              const Spacer(),
+                              if (isSelected)
+                                const Icon(
+                                  Icons.check_circle,
+                                  color: Color(0xFF2ECC71),
+                                  size: 20,
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
   // Helper: Convert database category string to enum
   ContentCategory _getCategoryEnum(String category) {
     switch (category.toLowerCase()) {
@@ -123,6 +255,20 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
       case 'battery': return ContentCategory.batteries;
       case 'cable': return ContentCategory.cables;
       default: return ContentCategory.general;
+    }
+  }
+  
+  // Helper: Get category display name
+  String _getCategoryDisplayName(String category) {
+    switch (category.toLowerCase()) {
+      case 'smartphone': return 'Smartphones';
+      case 'laptop': return 'Laptops';
+      case 'tablet': return 'Tablets';
+      case 'charger': return 'Chargers';
+      case 'battery': return 'Batteries';
+      case 'cable': return 'Cables';
+      case 'general': return 'General';
+      default: return category;
     }
   }
   
@@ -240,9 +386,42 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                 child: Column(
                   children: [
-                    HubSearchBar(
-                      controller: _searchController,
-                      onClear: _clearSearch,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: HubSearchBar(
+                            controller: _searchController,
+                            onClear: _clearSearch,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Filter button
+                        Container(
+                          decoration: BoxDecoration(
+                            color: _selectedCategory != null 
+                                ? const Color(0xFF2ECC71) 
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.08),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.filter_list,
+                              color: _selectedCategory != null 
+                                  ? Colors.white 
+                                  : Colors.black87,
+                            ),
+                            onPressed: _showFilterBottomSheet,
+                            tooltip: 'Filter by category',
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
                     TabSwitcher(
@@ -317,10 +496,19 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
       );
     }
     
-    // Apply search filter
+    // Apply search and category filters
     List<Map<String, dynamic>> filteredVideos = _videos;
+    
+    // Filter by category
+    if (_selectedCategory != null) {
+      filteredVideos = filteredVideos.where((v) {
+        return (v['category'] as String).toLowerCase() == _selectedCategory!.toLowerCase();
+      }).toList();
+    }
+    
+    // Filter by search query
     if (_searchQuery.isNotEmpty) {
-      filteredVideos = _videos.where((v) {
+      filteredVideos = filteredVideos.where((v) {
         final title = (v['title'] as String).toLowerCase();
         final description = (v['description'] as String).toLowerCase();
         final tags = List<String>.from(v['tags'] ?? []);
@@ -342,9 +530,47 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
             Text(
               _searchQuery.isEmpty 
                   ? 'No videos available yet' 
-                  : 'No videos found for "$_searchQuery"',
-              style: TextStyle(color: Colors.grey[600]),
+                  : 'No videos found',
+              style: TextStyle(
+                color: Colors.grey[700],
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
             ),
+            if (_searchQuery.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40),
+                child: Text(
+                  'Try searching by different title or topic keywords',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.search, size: 16, color: Colors.grey[600]),
+                    const SizedBox(width: 8),
+                    Text(
+                      '"$_searchQuery"',
+                      style: TextStyle(
+                        color: Colors.grey[700],
+                        fontSize: 13,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       );
@@ -358,17 +584,71 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Text(
-                  'Video Library',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[800],
+              Row(
+                children: [
+                  Text(
+                    _searchQuery.isEmpty 
+                        ? 'Video Library' 
+                        : 'Search Results',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[800],
+                    ),
                   ),
-                ),
+                  if (_searchQuery.isNotEmpty) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2ECC71).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '${filteredVideos.length} video${filteredVideos.length != 1 ? 's' : ''}',
+                        style: const TextStyle(
+                          color: Color(0xFF2ECC71),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                  if (_selectedCategory != null) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2ECC71).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _getCategoryDisplayName(_selectedCategory!),
+                            style: const TextStyle(
+                              color: Color(0xFF2ECC71),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          GestureDetector(
+                            onTap: () => setState(() => _selectedCategory = null),
+                            child: const Icon(
+                              Icons.close,
+                              size: 14,
+                              color: Color(0xFF2ECC71),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
               ),
+              const SizedBox(height: 16),
             ],
           );
         }
@@ -428,10 +708,19 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
       );
     }
     
-    // Apply search filter
+    // Apply search and category filters
     List<Map<String, dynamic>> filteredArticles = _articles;
+    
+    // Filter by category
+    if (_selectedCategory != null) {
+      filteredArticles = filteredArticles.where((a) {
+        return (a['category'] as String).toLowerCase() == _selectedCategory!.toLowerCase();
+      }).toList();
+    }
+    
+    // Filter by search query
     if (_searchQuery.isNotEmpty) {
-      filteredArticles = _articles.where((a) {
+      filteredArticles = filteredArticles.where((a) {
         final title = (a['title'] as String).toLowerCase();
         final description = (a['description'] as String).toLowerCase();
         final tags = List<String>.from(a['tags'] ?? []);
@@ -453,9 +742,47 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
             Text(
               _searchQuery.isEmpty 
                   ? 'No articles available yet' 
-                  : 'No articles found for "$_searchQuery"',
-              style: TextStyle(color: Colors.grey[600]),
+                  : 'No articles found',
+              style: TextStyle(
+                color: Colors.grey[700],
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
             ),
+            if (_searchQuery.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40),
+                child: Text(
+                  'Try searching by different title or topic keywords',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.search, size: 16, color: Colors.grey[600]),
+                    const SizedBox(width: 8),
+                    Text(
+                      '"$_searchQuery"',
+                      style: TextStyle(
+                        color: Colors.grey[700],
+                        fontSize: 13,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       );
@@ -469,17 +796,71 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Text(
-                  'Featured Articles',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[800],
+              Row(
+                children: [
+                  Text(
+                    _searchQuery.isEmpty 
+                        ? 'Featured Articles' 
+                        : 'Search Results',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[800],
+                    ),
                   ),
-                ),
+                  if (_searchQuery.isNotEmpty) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2ECC71).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '${filteredArticles.length} article${filteredArticles.length != 1 ? 's' : ''}',
+                        style: const TextStyle(
+                          color: Color(0xFF2ECC71),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                  if (_selectedCategory != null) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2ECC71).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _getCategoryDisplayName(_selectedCategory!),
+                            style: const TextStyle(
+                              color: Color(0xFF2ECC71),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          GestureDetector(
+                            onTap: () => setState(() => _selectedCategory = null),
+                            child: const Icon(
+                              Icons.close,
+                              size: 14,
+                              color: Color(0xFF2ECC71),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
               ),
+              const SizedBox(height: 16),
             ],
           );
         }
@@ -519,7 +900,6 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
           onTap: () => _openArticle(articleData),
           child: Container(
             margin: const EdgeInsets.only(bottom: 16),
-            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
@@ -531,111 +911,139 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
                 ),
               ],
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Stack(
               children: [
-                // Category badge
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2ECC71).withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+                // Main content
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        getCategoryIcon(articleData['category']),
-                        size: 14,
-                        color: const Color(0xFF2ECC71),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        getCategoryName(articleData['category']),
-                        style: const TextStyle(
-                          color: Color(0xFF2ECC71),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                      // Category badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2ECC71).withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
                         ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              getCategoryIcon(articleData['category']),
+                              size: 14,
+                              color: const Color(0xFF2ECC71),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              getCategoryName(articleData['category']),
+                              style: const TextStyle(
+                                color: Color(0xFF2ECC71),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      
+                      // Title
+                      Padding(
+                        padding: const EdgeInsets.only(right: 40),
+                        child: Text(
+                          articleData['title'],
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      
+                      // Description
+                      Text(
+                        articleData['description'],
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 12),
+                      
+                      // Metadata
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 8,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          if (articleData['author'] != null)
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.person_outline, size: 14, color: Colors.grey[500]),
+                                const SizedBox(width: 4),
+                                Text(
+                                  articleData['author'],
+                                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                ),
+                              ],
+                            ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.visibility_outlined, size: 14, color: Colors.grey[500]),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${formatViews(articleData['views'] ?? 0)} views',
+                                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
                 
-                // Title
-                Text(
-                  articleData['title'],
-                  style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
-                
-                // Description
-                Text(
-                  articleData['description'],
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 12),
-                
-                // Metadata
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 8,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    if (articleData['author'] != null)
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.person_outline, size: 14, color: Colors.grey[500]),
-                          const SizedBox(width: 4),
-                          Text(
-                            articleData['author'],
-                            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                          ),
-                        ],
-                      ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.visibility_outlined, size: 14, color: Colors.grey[500]),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${formatViews(articleData['views'] ?? 0)} views',
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                // Bookmark button (top right)
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => _toggleBookmark(articleId),
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
-                      ],
+                        child: Icon(
+                          _bookmarkedIds.contains(articleId) 
+                              ? Icons.bookmark 
+                              : Icons.bookmark_border,
+                          color: _bookmarkedIds.contains(articleId)
+                              ? const Color(0xFF2ECC71)
+                              : Colors.grey[700],
+                          size: 20,
+                        ),
+                      ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                // Bookmark button (separate)
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: IconButton(
-                    icon: Icon(
-                      _bookmarkedIds.contains(articleId) 
-                          ? Icons.bookmark 
-                          : Icons.bookmark_border,
-                      color: _bookmarkedIds.contains(articleId)
-                          ? const Color(0xFF2ECC71)
-                          : Colors.grey[400],
-                      size: 20,
-                    ),
-                    onPressed: () => _toggleBookmark(articleId),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
                   ),
                 ),
               ],
