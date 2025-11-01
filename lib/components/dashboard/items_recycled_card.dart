@@ -43,7 +43,7 @@ class ItemsRecycledCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Items recycled",
+                    "Items disposed",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   SizedBox(height: 2),

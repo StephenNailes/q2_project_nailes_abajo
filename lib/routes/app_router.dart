@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'transitions.dart';
 
 // Import your screens
 import '../auth/login_screen.dart';
@@ -6,7 +7,7 @@ import '../auth/register_screen.dart';
 import '../auth/forgot_password_screen.dart';
 import '../screen/dashboard_screen.dart';
 import '../screen/learning_hub_screen.dart';
-import '../screen/eco_tips_screen.dart';
+import '../screen/community_feed_screen.dart'; // Changed from eco_tips_screen
 import '../screen/submission_screen.dart';
 import '../screen/profile_screen.dart';
 import '../screen/recycle_history_screen.dart';
@@ -14,8 +15,8 @@ import '../screen/settings_screen.dart';
 import '../screen/edit_profile_screen.dart';
 import '../screen/change_password_screen.dart';
 import '../screen/manage_email_screen.dart';
-import '../screen/notification_screen.dart'; // ✅ New
-import '../screen/connection_test_screen.dart'; // ✅ Test screen
+import '../screen/notification_screen.dart';
+import '../screen/connection_test_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/login',
@@ -33,24 +34,39 @@ final appRouter = GoRouter(
       builder: (context, state) => const ForgotPasswordScreen(),
     ),
     GoRoute(
-      path: '/home', // Bottom nav home/dashboard
-      builder: (context, state) => const DashboardScreen(),
+      path: '/home',
+      pageBuilder: (context, state) => AppTransitions.slideHorizontal(
+        state: state,
+        child: const DashboardScreen(),
+      ),
     ),
     GoRoute(
-      path: '/tips',
-      builder: (context, state) => const EcoTipsScreen(),
+      path: '/community',
+      pageBuilder: (context, state) => AppTransitions.slideHorizontal(
+        state: state,
+        child: const CommunityFeedScreen(),
+      ),
     ),
     GoRoute(
       path: '/guides',
-      builder: (context, state) => const LearningHubScreen(),
+      pageBuilder: (context, state) => AppTransitions.slideHorizontal(
+        state: state,
+        child: const LearningHubScreen(),
+      ),
     ),
     GoRoute(
       path: '/submissions',
-      builder: (context, state) => const SubmissionScreen(),
+      pageBuilder: (context, state) => AppTransitions.slideHorizontal(
+        state: state,
+        child: const SubmissionScreen(),
+      ),
     ),
     GoRoute(
       path: '/profile',
-      builder: (context, state) => const ProfileScreen(),
+      pageBuilder: (context, state) => AppTransitions.slideHorizontal(
+        state: state,
+        child: const ProfileScreen(),
+      ),
     ),
     GoRoute(
       path: '/recycle-history',

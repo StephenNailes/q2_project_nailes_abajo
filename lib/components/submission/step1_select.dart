@@ -19,7 +19,7 @@ class Step1Select extends StatelessWidget {
             const SizedBox(height: 32),
 
             const Text(
-              "What are you recycling?",
+              "What are you disposing?",
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w600,
@@ -29,7 +29,7 @@ class Step1Select extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             const Text(
-              "Select the type of item you'd like to recycle",
+              "Select the type of item you'd like to dispose or repurpose",
               style: TextStyle(
                 color: Colors.black45,
                 fontSize: 15,
@@ -137,7 +137,7 @@ class Step1Select extends StatelessWidget {
         onPressed: () => Navigator.pop(context),
       ),
       title: const Text(
-        "Recycle Items",
+        "Dispose Items",
         style: TextStyle(
           color: Colors.black87,
           fontWeight: FontWeight.w600,

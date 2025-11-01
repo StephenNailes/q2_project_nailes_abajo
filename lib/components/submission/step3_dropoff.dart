@@ -202,7 +202,7 @@ class _Step3DropOffState extends State<Step3DropOff> {
         onPressed: () => Navigator.pop(context),
       ),
       title: const Text(
-        "Recycle Items",
+        "Dispose Items",
         style: TextStyle(
           color: Color(0xFF222B45),
           fontWeight: FontWeight.w600,

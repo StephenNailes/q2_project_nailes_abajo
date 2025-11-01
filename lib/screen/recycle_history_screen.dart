@@ -73,7 +73,7 @@ class RecycleHistoryScreen extends StatelessWidget {
             onPressed: () => context.go('/profile'),
           ),
           title: const Text(
-            "Recycle History",
+            "Disposal History",
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: Colors.black,
@@ -89,7 +89,7 @@ class RecycleHistoryScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                "View all the items you've logged for recycling.",
+                "View all the items you've logged for disposal or repurposing.",
                 style: TextStyle(
                   color: Colors.black54,
                   fontSize: 15,

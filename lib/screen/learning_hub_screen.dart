@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../components/eco_bottom_nav.dart';
+import '../components/shared/swipe_nav_wrapper.dart';
 import '../components/learninghub/hub_search_bar.dart';
 import '../components/learninghub/tab_switcher.dart';
 import '../components/learninghub/featured_banner.dart';
@@ -40,15 +42,17 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFFE9FBEF), Color(0xFFD6F5E0)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return SwipeNavWrapper(
+      currentIndex: 2,
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFE9FBEF), Color(0xFFD6F5E0)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
         ),
-      ),
-      child: Scaffold(
+        child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
@@ -67,6 +71,18 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
               ),
             ],
           ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.notifications_outlined, color: Colors.black87),
+              onPressed: () => context.go('/notifications'),
+              tooltip: 'Notifications',
+            ),
+            IconButton(
+              icon: const Icon(Icons.settings_outlined, color: Colors.black87),
+              onPressed: () => context.go('/settings'),
+              tooltip: 'Settings',
+            ),
+          ],
         ),
         body: Padding(
           padding: const EdgeInsets.all(16),
@@ -99,8 +115,9 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
         floatingActionButton: const SubmissionButton(),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         bottomNavigationBar: const EcoBottomNavBar(currentIndex: 2),
-      ),
-    );
+      ), // Scaffold
+    ), // Container
+  ); // SwipeNavWrapper
   }
 
   // -------- Tabs ----------

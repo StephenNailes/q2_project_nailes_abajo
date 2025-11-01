@@ -1,7 +1,7 @@
 # EcoSustain Flutter App - AI Coding Agent Instructions
 
 ## Project Overview
-EcoSustain (TechSustain) is a Flutter mobile app for e-waste recycling management. Users can submit electronics for recycling through a multi-step workflow, track their recycling history, access eco tips, and manage their profile.
+EcoSustain (TechSustain) is a Flutter mobile app for e-waste disposal and repurposing management with social community features. Users can submit electronics for disposal/repurposing through a multi-step workflow, share their submissions with the community (like Facebook posts), discover disposal locations from other users, and manage their profile. The app focuses on "dispose" and "repurpose" terminology instead of "recycle".
 
 ## Architecture & Navigation
 
@@ -19,7 +19,8 @@ lib/
   ├── components/     # Feature-specific components grouped by feature
   │   ├── dashboard/
   │   ├── submission/  # 5-step submission flow components
-  │   ├── ecotips/
+  │   ├── community/   # Community feed post cards
+  │   ├── learninghub/
   │   └── eco_bottom_nav.dart  # Shared bottom nav
   └── routes/         # Router configuration
 ```
@@ -30,7 +31,34 @@ lib/
 - Components are grouped by feature (e.g., `submission/`, `dashboard/`)
 - Shared components like `EcoBottomNavBar` live at `components/` root
 
-## Multi-Step Submission Workflow
+## Key Terminology
+
+**IMPORTANT**: This app uses "dispose" and "repurpose" terminology, NOT "recycle":
+- ✅ **Use**: Dispose, Disposal, Disposed, Repurpose, Repurposed
+- ❌ **Avoid**: Recycle, Recycling, Recycled (except in historical context or data model migrations)
+
+## Community Feed System
+
+**Critical Feature**: The app is a social community platform where users share their e-waste disposal submissions:
+
+### Community Feed Screen (`community_feed_screen.dart`)
+- **Purpose**: Facebook-style feed showing all users' disposal submissions
+- **Features**:
+  - Post cards with user info (avatar, name, timestamp)
+  - Item details (type, brand, quantity)
+  - Disposal/repurpose action badge
+  - Location information (help others find disposal centers)
+  - Photos of items
+  - Like and comment buttons
+  - Share functionality
+  - Pull-to-refresh
+  - Filter options
+
+### Submission as Public Posts
+- When users submit items, they create **public community posts**
+- Other users can see what was disposed, where, and learn from it
+- Purpose: Help community members discover disposal locations and best practices
+- Posts include: user info, item details, location, photos, description, likes, comments
 
 **Critical Pattern**: The submission flow uses a 5-step wizard with dedicated components:
 
@@ -86,7 +114,7 @@ Container(
 
 ### Bottom Navigation (currentIndex mapping)
 - 0: `/home` (Dashboard)
-- 1: `/tips` (Eco Tips)
+- 1: `/community` (Community Feed - Facebook-style posts of user submissions)
 - 2: `/guides` (Learning Hub)
 - 3: `/submissions` (via FAB - FloatingActionButton)
 - 4: `/profile` (Profile)

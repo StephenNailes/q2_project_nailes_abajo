@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../components/eco_bottom_nav.dart';
+import '../components/shared/swipe_nav_wrapper.dart';
 import '../components/submission/new_submission_card.dart';
 import '../components/submission/checklist_card.dart';
 import '../components/submission/step1_select.dart';
@@ -9,15 +10,17 @@ class SubmissionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFFE9FBEF), Color(0xFFD6F5E0)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return SwipeNavWrapper(
+      currentIndex: 3,
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFE9FBEF), Color(0xFFD6F5E0)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
         ),
-      ),
-      child: Scaffold(
+        child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
@@ -68,7 +71,8 @@ class SubmissionScreen extends StatelessWidget {
         bottomNavigationBar: const EcoBottomNavBar(currentIndex: 3),
         floatingActionButton: const SubmissionButton(),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      ),
-    );
+      ), // Scaffold
+    ), // Container
+  ); // SwipeNavWrapper
   }
 }

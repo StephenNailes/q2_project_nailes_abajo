@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../components/eco_bottom_nav.dart';
 import '../services/firebase_auth_service.dart';
+import '../components/shared/swipe_nav_wrapper.dart';
 import '../services/firebase_storage_service.dart';
 import '../services/supabase_service.dart';
 
@@ -132,15 +133,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFFE9FBEF), Color(0xFFD6F5E0)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return SwipeNavWrapper(
+      currentIndex: 4,
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFE9FBEF), Color(0xFFD6F5E0)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
         ),
-      ),
-      child: Scaffold(
+        child: Scaffold(
         backgroundColor: Colors.transparent,
         body: Column(
           children: [
@@ -248,7 +251,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      '$_totalRecycled Items Recycled',
+                      '$_totalRecycled Items Disposed',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 14,
@@ -388,8 +391,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         floatingActionButtonLocation:
             FloatingActionButtonLocation.centerDocked,
         bottomNavigationBar: const EcoBottomNavBar(currentIndex: 4),
-      ),
-    );
+      ), // Scaffold
+    ), // Container
+  ); // SwipeNavWrapper
   }
 
   // Improved Profile Option Card

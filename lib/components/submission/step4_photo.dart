@@ -89,7 +89,7 @@ class _Step4PhotoState extends State<Step4Photo> {
             ),
             const SizedBox(height: 8),
             const Text(
-              "Add a photo of your recycled item.",
+              "Add a photo of your item to dispose.",
               style: TextStyle(color: Color(0xFF8F9BB3), fontSize: 15),
             ),
             const SizedBox(height: 28),
@@ -251,7 +251,7 @@ class _Step4PhotoState extends State<Step4Photo> {
         onPressed: () => Navigator.pop(context),
       ),
       title: const Text(
-        "Recycle Items",
+        "Dispose Items",
         style: TextStyle(
             color: Color(0xFF222B45),
             fontWeight: FontWeight.w600,

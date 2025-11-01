@@ -9,30 +9,20 @@ class EcoBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const Color activeColor = Color(0xFF2ECC71); // Eco green
-    const Color inactiveColor = Colors.grey;
+    const Color inactiveColor = Colors.black45;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 8,
-            offset: Offset(0, -2),
-          )
-        ],
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
-        ),
-      ),
-      child: BottomAppBar(
-        color: Colors.transparent,
-        elevation: 0,
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8,
+    // Modern minimal BottomAppBar with true notch cutout (no outer container that blocks the notch)
+    return BottomAppBar(
+      color: Colors.white,
+      elevation: 12,
+      // Use the built-in circular notch and clip the shape so the FAB sits in a radial cutout
+      shape: const CircularNotchedRectangle(),
+      notchMargin: 6, // small, snug cutout around the FAB
+      clipBehavior: Clip.antiAlias,
+      child: SafeArea(
+        top: false,
         child: SizedBox(
-          height: 30, // Reduced from 70
+          height: 64,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -46,13 +36,13 @@ class EcoBottomNavBar extends StatelessWidget {
               ),
               _buildNavItem(
                 context,
-                icon: Icons.lightbulb_outline,
-                label: "Tips",
+                icon: Icons.people_outline,
+                label: "Community",
                 index: 1,
                 activeColor: activeColor,
                 inactiveColor: inactiveColor,
               ),
-              const SizedBox(width: 60), // space for floating action button
+              const SizedBox(width: 64), // space beneath center FAB (matches FAB size)
               _buildNavItem(
                 context,
                 icon: Icons.menu_book_outlined,
@@ -93,7 +83,7 @@ class EcoBottomNavBar extends StatelessWidget {
             context.go('/home');
             break;
           case 1:
-            context.go('/tips');
+            context.go('/community'); // Changed from /tips
             break;
           case 2:
             context.go('/guides');
@@ -109,26 +99,21 @@ class EcoBottomNavBar extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: isActive ? activeColor : inactiveColor),
-          const SizedBox(height: 4),
+          Icon(
+            icon,
+            size: 22,
+            color: isActive ? activeColor : inactiveColor,
+          ),
+          const SizedBox(height: 2),
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 11,
               color: isActive ? activeColor : inactiveColor,
-              fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+              letterSpacing: 0.1,
             ),
           ),
-          if (isActive)
-            Container(
-              margin: const EdgeInsets.only(top: 2),
-              width: 6,
-              height: 6,
-              decoration: BoxDecoration(
-                color: activeColor,
-                shape: BoxShape.circle,
-              ),
-            ),
         ],
       ),
     );
@@ -141,15 +126,16 @@ class SubmissionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Use standard 56-64 size so the BottomAppBar notch aligns neatly
     return SizedBox(
-      width: 70,
-      height: 70,
+      width: 64,
+      height: 64,
       child: FloatingActionButton(
         backgroundColor: const Color(0xFF2ECC71),
-        elevation: 6,
+        elevation: 8,
         onPressed: () => context.go('/submissions'),
         shape: const CircleBorder(),
-        child: const Icon(Icons.add, size: 32, color: Colors.white),
+        child: const Icon(Icons.add, size: 28, color: Colors.white),
       ),
     );
   }

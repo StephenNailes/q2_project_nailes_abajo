@@ -34,7 +34,7 @@ class EWasteCard extends StatelessWidget {
               const SizedBox(height: 16),
               const Expanded(
                 child: Text(
-                  "Ready to dispose of your electronic waste responsibly? Upload details and we’ll help you find the best recycling options.",
+                  "Ready to dispose of your electronic waste responsibly? Upload details and we'll help you find the best disposal options.",
                   style: TextStyle(color: Colors.black87, fontSize: 15),
                 ),
               ),

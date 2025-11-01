@@ -37,7 +37,7 @@ class NewSubmissionCard extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             const Text(
-              "Log your old devices and help recycle responsibly.",
+              "Log your old devices and help dispose responsibly.",
               style: TextStyle(
                 color: Colors.black54,
                 fontSize: 16,
