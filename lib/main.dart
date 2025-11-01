@@ -12,6 +12,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
+    // Initialize environment variables from .env file
+    await EnvConfig.initialize();
+    debugPrint('✅ Environment variables loaded');
+
     // Initialize Firebase (if enabled)
     if (EnvConfig.useFirebase) {
       await _initializeFirebase();

@@ -1,20 +1,63 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 /// Environment configuration for EcoSustain app
 /// 
-/// This file contains configuration for Firebase and Supabase.
-/// Follow the SETUP_GUIDE.md to get your credentials.
+/// This file loads configuration from .env file to keep secrets secure.
+/// The .env file is excluded from git for security.
 class EnvConfig {
   // ============================================
   // SUPABASE CONFIGURATION
   // ============================================
-  // Get these from: https://supabase.com/dashboard/project/YOUR_PROJECT/settings/api
   
   /// Your Supabase project URL
-  /// Example: 'https://xxxxxxxxxxxxx.supabase.co'
-  static const String supabaseUrl = 'https://uxiticipaqsfpsvijbcn.supabase.co';
+  static String get supabaseUrl => dotenv.env['SUPABASE_URL'] ?? '';
   
   /// Your Supabase anon/public key
-  /// Example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
-  static const String supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4aXRpY2lwYXFzZnBzdmlqYmNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3NjcyMzcsImV4cCI6MjA3NzM0MzIzN30.2393xhFT3p41liNjiVjVwD53CjmmsPLq9s-ljg1eygA';
+  static String get supabaseAnonKey => dotenv.env['SUPABASE_ANON_KEY'] ?? '';
+  
+  // ============================================
+  // FIREBASE CONFIGURATION
+  // ============================================
+  
+  // Web
+  static String get firebaseWebApiKey => dotenv.env['FIREBASE_WEB_API_KEY'] ?? '';
+  static String get firebaseWebAppId => dotenv.env['FIREBASE_WEB_APP_ID'] ?? '';
+  static String get firebaseMessagingSenderId => dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? '';
+  static String get firebaseProjectId => dotenv.env['FIREBASE_PROJECT_ID'] ?? '';
+  static String get firebaseAuthDomain => dotenv.env['FIREBASE_AUTH_DOMAIN'] ?? '';
+  static String get firebaseStorageBucket => dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? '';
+  static String get firebaseWebMeasurementId => dotenv.env['FIREBASE_WEB_MEASUREMENT_ID'] ?? '';
+  
+  // Android
+  static String get firebaseAndroidApiKey => dotenv.env['FIREBASE_ANDROID_API_KEY'] ?? '';
+  static String get firebaseAndroidAppId => dotenv.env['FIREBASE_ANDROID_APP_ID'] ?? '';
+  
+  // Windows
+  static String get firebaseWindowsApiKey => dotenv.env['FIREBASE_WINDOWS_API_KEY'] ?? '';
+  static String get firebaseWindowsAppId => dotenv.env['FIREBASE_WINDOWS_APP_ID'] ?? '';
+  static String get firebaseWindowsMeasurementId => dotenv.env['FIREBASE_WINDOWS_MEASUREMENT_ID'] ?? '';
+  
+  // ============================================
+  // YOUTUBE DATA API
+  // ============================================
+  
+  static String get youtubeApiKey => dotenv.env['YOUTUBE_API_KEY'] ?? '';
+  
+  // ============================================
+  // INITIALIZATION
+  // ============================================
+  
+  /// Initialize environment variables from .env file
+  static Future<void> initialize() async {
+    try {
+      await dotenv.load(fileName: ".env");
+    } catch (e) {
+      // Use debugPrint instead of print for production compatibility
+      debugPrint('⚠️ Warning: Could not load .env file: $e');
+      debugPrint('Make sure .env file exists in the project root');
+    }
+  }
   
   // ============================================
   // BACKEND SELECTION

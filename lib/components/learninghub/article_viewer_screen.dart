@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:markdown/markdown.dart' as md;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/learning_content_model.dart';
@@ -236,6 +237,10 @@ class _ArticleViewerScreenState extends State<ArticleViewerScreen> {
                 child: MarkdownBody(
                   data: widget.article.articleContent ?? '',
                   selectable: true,
+                  // Use sizedImageBuilder instead of deprecated imageBuilder
+                  builders: {
+                    'img': CustomImageBuilder(),
+                  },
                   styleSheet: MarkdownStyleSheet(
                     // Headings
                     h1: const TextStyle(

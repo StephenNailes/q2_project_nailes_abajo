@@ -30,6 +30,7 @@ dependencies:
   
   # Additional utilities
   shared_preferences: ^2.3.3
+  flutter_dotenv: ^5.2.1          # Environment variables
   
   # Learning content packages
   youtube_player_flutter: ^9.0.3  # YouTube video player
@@ -49,6 +50,7 @@ flutter:
 
   assets:
     - lib/assets/images/
+    - .env
 
 # App Icon Configuration
 flutter_launcher_icons:

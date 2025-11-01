@@ -12,6 +12,14 @@
 .swiftpm/
 migrate_working_dir/
 
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+*.env
+lib/config/api_keys.dart
+lib/firebase_options.dart
+
 # IntelliJ related
 *.iml
 *.ipr
