@@ -3,12 +3,13 @@ import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../components/eco_bottom_nav.dart';
 import '../components/shared/swipe_nav_wrapper.dart';
-import '../components/dashboard/items_recycled_card.dart';
+import '../components/dashboard/items_disposed_card.dart';
 import '../components/dashboard/eco_tip_card.dart';
 import '../components/dashboard/e_waste_card.dart';
 import '../components/dashboard/welcome_section.dart';
 import '../services/supabase_service.dart';
 import '../models/user_model.dart';
+import '../utils/responsive_utils.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -98,9 +99,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ],
           ),
-          body: Padding(
-            padding: const EdgeInsets.all(16),
-            child: SizedBox.expand(
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: ResponsiveUtils.getScreenPadding(context),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -112,37 +113,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           profileImageUrl: _userProfile?.profileImageUrl,
                         ),
 
-                  ItemsRecycledCard(
-                    count: _userProfile?.totalRecycled.toString() ?? "0",
+                  ItemsDisposedCard(
+                    count: _userProfile?.totalDisposed.toString() ?? "0",
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
 
-                  Flexible(
-                    child: EcoTipCarousel(
-                      tips: [
-                        EcoTip(
-                          tip: "Switch to LED bulbs to reduce energy consumption by up to 80%",
-                          icon: Icons.lightbulb_outline,
-                          iconColor: Colors.orange,
-                        ),
-                        EcoTip(
-                          tip: "Donate or dispose of old electronics responsibly to prevent harmful e-waste from ending up in landfills.",
-                          icon: Icons.shopping_bag_outlined,
-                          iconColor: Colors.green,
-                        ),
-                        EcoTip(
-                          tip: "Repurpose or refurbish broken gadgets to extend their life and reduce electronic waste.",
-                          icon: Icons.grass,
-                          iconColor: Colors.brown,
-                        ),
-                      ],
-                    ),
+                  EcoTipCarousel(
+                    tips: [
+                      EcoTip(
+                        tip: "Switch to LED bulbs to reduce energy consumption by up to 80%",
+                        icon: Icons.lightbulb_outline,
+                        iconColor: Colors.orange,
+                      ),
+                      EcoTip(
+                        tip: "Donate or dispose of old electronics responsibly to prevent harmful e-waste from ending up in landfills.",
+                        icon: Icons.shopping_bag_outlined,
+                        iconColor: Colors.green,
+                      ),
+                      EcoTip(
+                        tip: "Repurpose or refurbish broken gadgets to extend their life and reduce electronic waste.",
+                        icon: Icons.grass,
+                        iconColor: Colors.brown,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
 
-                  EWasteCard(onSubmit: () {
-                  }),
-                  const SizedBox(height: 24),
+                  EWasteCard(onSubmit: () {}),
+                  const SizedBox(height: 80), // Space for bottom nav
                 ],
               ),
             ),

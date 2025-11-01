@@ -53,8 +53,11 @@ class _EcoTipCarouselState extends State<EcoTipCarousel> {
               ],
             ),
             const SizedBox(height: 16),
-            SizedBox(
-              height: 70,
+            ConstrainedBox(
+              constraints: const BoxConstraints(
+                minHeight: 70,
+                maxHeight: 120,
+              ),
               child: PageView.builder(
                 itemCount: widget.tips.length,
                 controller: PageController(initialPage: _currentIndex),
@@ -81,7 +84,9 @@ class _EcoTipCarouselState extends State<EcoTipCarousel> {
                           child: Text(
                             ecoTip.tip,
                             style: const TextStyle(
-                                color: Colors.black87, fontSize: 15),
+                                color: Colors.black87, fontSize: 14),
+                            maxLines: 4,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],

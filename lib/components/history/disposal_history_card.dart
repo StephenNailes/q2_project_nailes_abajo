@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class RecycleHistoryCard extends StatelessWidget {
+class DisposalHistoryCard extends StatelessWidget {
   final IconData icon;
   final Color bgColor;
   final String title;
@@ -9,7 +9,7 @@ class RecycleHistoryCard extends StatelessWidget {
   final String date;
   final String imagePath;
 
-  const RecycleHistoryCard({
+  const DisposalHistoryCard({
     super.key,
     required this.icon,
     required this.bgColor,

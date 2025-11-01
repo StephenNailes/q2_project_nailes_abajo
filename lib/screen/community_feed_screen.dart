@@ -83,6 +83,7 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
   }
 
   void _handleLike(String postId) {
+    if (!mounted) return;
     setState(() {
       final post = _communityPosts.firstWhere((p) => p['id'] == postId);
       post['isLiked'] = !post['isLiked'];
@@ -124,7 +125,9 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                             _selectedAction = 'All';
                             _selectedItemType = 'All';
                           });
-                          setState(() {});
+                          if (mounted) {
+                            setState(() {});
+                          }
                         },
                         child: const Text('Reset'),
                       ),
@@ -153,7 +156,9 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                           setModalState(() {
                             _selectedAction = action;
                           });
-                          setState(() {});
+                          if (mounted) {
+                            setState(() {});
+                          }
                         },
                         backgroundColor: Colors.grey[200],
                         selectedColor: const Color(0xFF2ECC71).withValues(alpha: 0.2),
@@ -189,7 +194,9 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                           setModalState(() {
                             _selectedItemType = type;
                           });
-                          setState(() {});
+                          if (mounted) {
+                            setState(() {});
+                          }
                         },
                         backgroundColor: Colors.grey[200],
                         selectedColor: const Color(0xFF2ECC71).withValues(alpha: 0.2),
@@ -308,7 +315,9 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
           onRefresh: () async {
             // TODO: Refresh posts from Supabase
             await Future.delayed(const Duration(seconds: 1));
-            setState(() {});
+            if (mounted) {
+              setState(() {});
+            }
           },
           child: ListView.builder(
             controller: _scrollController,
@@ -424,9 +433,11 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                               Chip(
                                 label: Text(_selectedAction),
                                 onDeleted: () {
-                                  setState(() {
-                                    _selectedAction = 'All';
-                                  });
+                                  if (mounted) {
+                                    setState(() {
+                                      _selectedAction = 'All';
+                                    });
+                                  }
                                 },
                                 backgroundColor: const Color(0xFF2ECC71).withValues(alpha: 0.1),
                                 labelStyle: const TextStyle(
@@ -439,9 +450,11 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                               Chip(
                                 label: Text(_selectedItemType),
                                 onDeleted: () {
-                                  setState(() {
-                                    _selectedItemType = 'All';
-                                  });
+                                  if (mounted) {
+                                    setState(() {
+                                      _selectedItemType = 'All';
+                                    });
+                                  }
                                 },
                                 backgroundColor: const Color(0xFF2ECC71).withValues(alpha: 0.1),
                                 labelStyle: const TextStyle(

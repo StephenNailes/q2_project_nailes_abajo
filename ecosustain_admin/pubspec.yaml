@@ -1,0 +1,41 @@
+name: ecosustain_admin
+description: EcoSustain Admin Panel - Content Management System
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # Supabase Backend
+  supabase_flutter: ^2.8.0
+  
+  # State Management & Routing
+  go_router: ^16.2.1
+  
+  # Rich Text Editor for Articles
+  flutter_quill: ^11.5.0
+  
+  # UI Components
+  google_fonts: ^6.2.1
+  intl: ^0.20.2
+  
+  # Image Handling
+  image_picker: ^1.0.7
+  
+  # URL Handling
+  url_launcher: ^6.3.1
+  
+  # Charts for Analytics Dashboard
+  fl_chart: ^0.69.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

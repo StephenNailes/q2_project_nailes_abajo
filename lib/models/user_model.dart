@@ -4,7 +4,7 @@ class UserModel {
   final String name;
   final String email;
   final String? profileImageUrl;
-  final int totalRecycled;
+  final int totalDisposed;
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -13,7 +13,7 @@ class UserModel {
     required this.name,
     required this.email,
     this.profileImageUrl,
-    this.totalRecycled = 0,
+    this.totalDisposed = 0,
     required this.createdAt,
     this.updatedAt,
   });
@@ -25,7 +25,7 @@ class UserModel {
       name: json['name'] ?? '',
       email: json['email'] ?? '',
       profileImageUrl: json['profileImageUrl'] ?? json['profile_image_url'],
-      totalRecycled: json['totalRecycled'] ?? json['total_recycled'] ?? 0,
+      totalDisposed: json['totalDisposed'] ?? json['total_disposed'] ?? 0,
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'].toString())
           : (json['created_at'] != null
@@ -45,7 +45,7 @@ class UserModel {
       'name': name,
       'email': email,
       'profileImageUrl': profileImageUrl,
-      'totalRecycled': totalRecycled,
+      'totalDisposed': totalDisposed,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
     };
@@ -58,7 +58,7 @@ class UserModel {
       'name': name,
       'email': email,
       'profile_image_url': profileImageUrl,
-      'total_recycled': totalRecycled,
+      'total_disposed': totalDisposed,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
     };
@@ -70,7 +70,7 @@ class UserModel {
     String? name,
     String? email,
     String? profileImageUrl,
-    int? totalRecycled,
+    int? totalDisposed,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -79,7 +79,7 @@ class UserModel {
       name: name ?? this.name,
       email: email ?? this.email,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
-      totalRecycled: totalRecycled ?? this.totalRecycled,
+      totalDisposed: totalDisposed ?? this.totalDisposed,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -87,6 +87,6 @@ class UserModel {
 
   @override
   String toString() {
-    return 'UserModel(id: $id, name: $name, email: $email, totalRecycled: $totalRecycled)';
+    return 'UserModel(id: $id, name: $name, email: $email, totalDisposed: $totalDisposed)';
   }
 }

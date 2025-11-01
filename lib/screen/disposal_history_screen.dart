@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '/components/history/recycle_history_card.dart';
+import '/components/history/disposal_history_card.dart';
 
-class RecycleHistoryScreen extends StatelessWidget {
-  const RecycleHistoryScreen({super.key});
+class DisposalHistoryScreen extends StatelessWidget {
+  const DisposalHistoryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -103,10 +103,10 @@ class RecycleHistoryScreen extends StatelessWidget {
                   color: Colors.transparent,
                   child: ListView.separated(
                     itemCount: historyItems.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 16),
+                    separatorBuilder: (context, index) => const SizedBox(height: 16),
                     itemBuilder: (context, index) {
                       final item = historyItems[index];
-                      return RecycleHistoryCard(
+                      return DisposalHistoryCard(
                         icon: item["icon"] as IconData,
                         bgColor: item["color"] as Color,
                         title: item["title"] as String,

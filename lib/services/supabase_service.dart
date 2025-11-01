@@ -2,7 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart';
 import '../models/user_model.dart';
 import '../models/submission_model.dart';
-import '../models/recycling_history_model.dart';
+import '../models/disposal_history_model.dart';
 import '../models/eco_tip_model.dart';
 
 /// Supabase Service
@@ -123,7 +123,7 @@ class SupabaseService {
         id: userId,
         name: name,
         email: email,
-        totalRecycled: 0,
+        totalDisposed: 0,
         createdAt: DateTime.now(),
       );
 
@@ -260,11 +260,11 @@ class SupabaseService {
   }
 
   // ============================================
-  // RECYCLING HISTORY
+  // DISPOSAL HISTORY
   // ============================================
 
-  /// Add recycling history entry
-  Future<void> addRecyclingHistory({
+  /// Add disposal history entry
+  Future<void> addDisposalHistory({
     required String userId,
     String? submissionId,
     required String itemType,
@@ -272,38 +272,38 @@ class SupabaseService {
     int earnedPoints = 0,
   }) async {
     try {
-      final history = RecyclingHistoryModel(
+      final history = DisposalHistoryModel(
         id: '',
         userId: userId,
         submissionId: submissionId,
         itemType: itemType,
         quantity: quantity,
         earnedPoints: earnedPoints,
-        recycledDate: DateTime.now(),
+        disposedDate: DateTime.now(),
       );
 
       await _client
-          .from('recycling_history')
+          .from('disposal_history')
           .insert(history.toSupabaseJson());
     } catch (e) {
-      throw Exception('Failed to add recycling history: $e');
+      throw Exception('Failed to add disposal history: $e');
     }
   }
 
-  /// Get user recycling history
-  Future<List<RecyclingHistoryModel>> getRecyclingHistory(String userId) async {
+  /// Get user disposal history
+  Future<List<DisposalHistoryModel>> getDisposalHistory(String userId) async {
     try {
       final response = await _client
-          .from('recycling_history')
+          .from('disposal_history')
           .select()
           .eq('user_id', userId)
-          .order('recycled_date', ascending: false);
+          .order('disposed_date', ascending: false);
 
       return (response as List)
-          .map((json) => RecyclingHistoryModel.fromJson(json, json['id']))
+          .map((json) => DisposalHistoryModel.fromJson(json, json['id']))
           .toList();
     } catch (e) {
-      throw Exception('Failed to get recycling history: $e');
+      throw Exception('Failed to get disposal history: $e');
     }
   }
 
@@ -348,8 +348,8 @@ class SupabaseService {
   // STATISTICS
   // ============================================
 
-  /// Get total items recycled
-  Future<int> getTotalItemsRecycled(String userId) async {
+  /// Get total items disposed
+  Future<int> getTotalItemsDisposed(String userId) async {
     try {
       final response = await _client
           .from('submissions')
@@ -364,7 +364,356 @@ class SupabaseService {
 
       return total;
     } catch (e) {
-      throw Exception('Failed to get total items recycled: $e');
+      throw Exception('Failed to get total items disposed: $e');
+    }
+  }
+
+  // ============================================
+  // LEARNING CONTENT - VIDEOS
+  // ============================================
+
+  /// Get all videos
+  Future<List<Map<String, dynamic>>> getAllVideos() async {
+    try {
+      final response = await _client
+          .from('videos')
+          .select()
+          .order('published_date', ascending: false);
+
+      return List<Map<String, dynamic>>.from(response as List);
+    } catch (e) {
+      throw Exception('Failed to get videos: $e');
+    }
+  }
+
+  /// Get videos by category
+  Future<List<Map<String, dynamic>>> getVideosByCategory(String category) async {
+    try {
+      final response = await _client
+          .from('videos')
+          .select()
+          .eq('category', category)
+          .order('published_date', ascending: false);
+
+      return List<Map<String, dynamic>>.from(response as List);
+    } catch (e) {
+      throw Exception('Failed to get videos by category: $e');
+    }
+  }
+
+  /// Get featured videos
+  Future<List<Map<String, dynamic>>> getFeaturedVideos() async {
+    try {
+      final response = await _client
+          .from('videos')
+          .select()
+          .eq('is_featured', true)
+          .order('views', ascending: false)
+          .limit(10);
+
+      return List<Map<String, dynamic>>.from(response as List);
+    } catch (e) {
+      throw Exception('Failed to get featured videos: $e');
+    }
+  }
+
+  /// Search videos by title, description, or tags
+  Future<List<Map<String, dynamic>>> searchVideos(String query) async {
+    try {
+      final response = await _client
+          .from('videos')
+          .select()
+          .or('title.ilike.%$query%,description.ilike.%$query%')
+          .order('views', ascending: false);
+
+      return List<Map<String, dynamic>>.from(response as List);
+    } catch (e) {
+      throw Exception('Failed to search videos: $e');
+    }
+  }
+
+  /// Get video by ID
+  Future<Map<String, dynamic>?> getVideoById(String id) async {
+    try {
+      final response = await _client
+          .from('videos')
+          .select()
+          .eq('id', id)
+          .single();
+
+      return response;
+    } catch (e) {
+      throw Exception('Failed to get video: $e');
+    }
+  }
+
+  /// Increment video views
+  Future<void> incrementVideoViews(String videoId) async {
+    try {
+      final currentVideo = await _client
+          .from('videos')
+          .select('views')
+          .eq('id', videoId)
+          .single();
+
+      final currentViews = (currentVideo['views'] as int?) ?? 0;
+
+      await _client
+          .from('videos')
+          .update({'views': currentViews + 1})
+          .eq('id', videoId);
+    } catch (e) {
+      debugPrint('Failed to increment video views: $e');
+    }
+  }
+
+  /// Add a new video (admin only)
+  Future<String> addVideo({
+    required String title,
+    required String description,
+    required String youtubeVideoId,
+    String? thumbnailUrl,
+    required String category,
+    required int duration,
+    required String author,
+    List<String>? tags,
+    bool isFeatured = false,
+  }) async {
+    try {
+      final response = await _client
+          .from('videos')
+          .insert({
+            'title': title,
+            'description': description,
+            'youtube_video_id': youtubeVideoId,
+            'thumbnail_url': thumbnailUrl ?? 'https://img.youtube.com/vi/$youtubeVideoId/maxresdefault.jpg',
+            'category': category,
+            'duration': duration,
+            'author': author,
+            'tags': tags ?? [],
+            'is_featured': isFeatured,
+          })
+          .select()
+          .single();
+
+      return response['id'];
+    } catch (e) {
+      throw Exception('Failed to add video: $e');
+    }
+  }
+
+  /// Update video (admin only)
+  Future<void> updateVideo(String id, Map<String, dynamic> updates) async {
+    try {
+      await _client
+          .from('videos')
+          .update(updates)
+          .eq('id', id);
+    } catch (e) {
+      throw Exception('Failed to update video: $e');
+    }
+  }
+
+  /// Delete video (admin only)
+  Future<void> deleteVideo(String id) async {
+    try {
+      await _client
+          .from('videos')
+          .delete()
+          .eq('id', id);
+    } catch (e) {
+      throw Exception('Failed to delete video: $e');
+    }
+  }
+
+  // ============================================
+  // LEARNING CONTENT - ARTICLES
+  // ============================================
+
+  /// Get all articles
+  Future<List<Map<String, dynamic>>> getAllArticles() async {
+    try {
+      final response = await _client
+          .from('articles')
+          .select()
+          .order('published_date', ascending: false);
+
+      return List<Map<String, dynamic>>.from(response as List);
+    } catch (e) {
+      throw Exception('Failed to get articles: $e');
+    }
+  }
+
+  /// Get articles by category
+  Future<List<Map<String, dynamic>>> getArticlesByCategory(String category) async {
+    try {
+      final response = await _client
+          .from('articles')
+          .select()
+          .eq('category', category)
+          .order('published_date', ascending: false);
+
+      return List<Map<String, dynamic>>.from(response as List);
+    } catch (e) {
+      throw Exception('Failed to get articles by category: $e');
+    }
+  }
+
+  /// Get featured articles
+  Future<List<Map<String, dynamic>>> getFeaturedArticles() async {
+    try {
+      final response = await _client
+          .from('articles')
+          .select()
+          .eq('is_featured', true)
+          .order('views', ascending: false)
+          .limit(10);
+
+      return List<Map<String, dynamic>>.from(response as List);
+    } catch (e) {
+      throw Exception('Failed to get featured articles: $e');
+    }
+  }
+
+  /// Search articles by title, description, or tags
+  Future<List<Map<String, dynamic>>> searchArticles(String query) async {
+    try {
+      final response = await _client
+          .from('articles')
+          .select()
+          .or('title.ilike.%$query%,description.ilike.%$query%')
+          .order('views', ascending: false);
+
+      return List<Map<String, dynamic>>.from(response as List);
+    } catch (e) {
+      throw Exception('Failed to search articles: $e');
+    }
+  }
+
+  /// Get article by ID
+  Future<Map<String, dynamic>?> getArticleById(String id) async {
+    try {
+      final response = await _client
+          .from('articles')
+          .select()
+          .eq('id', id)
+          .single();
+
+      return response;
+    } catch (e) {
+      throw Exception('Failed to get article: $e');
+    }
+  }
+
+  /// Increment article views
+  Future<void> incrementArticleViews(String articleId) async {
+    try {
+      final currentArticle = await _client
+          .from('articles')
+          .select('views')
+          .eq('id', articleId)
+          .single();
+
+      final currentViews = (currentArticle['views'] as int?) ?? 0;
+
+      await _client
+          .from('articles')
+          .update({'views': currentViews + 1})
+          .eq('id', articleId);
+    } catch (e) {
+      debugPrint('Failed to increment article views: $e');
+    }
+  }
+
+  /// Add a new article (admin only)
+  Future<String> addArticle({
+    required String title,
+    required String description,
+    required String content,
+    String? heroImageUrl,
+    required String category,
+    required String author,
+    List<String>? tags,
+    bool isFeatured = false,
+  }) async {
+    try {
+      final response = await _client
+          .from('articles')
+          .insert({
+            'title': title,
+            'description': description,
+            'content': content,
+            'hero_image_url': heroImageUrl,
+            'category': category,
+            'author': author,
+            'tags': tags ?? [],
+            'is_featured': isFeatured,
+          })
+          .select()
+          .single();
+
+      return response['id'];
+    } catch (e) {
+      throw Exception('Failed to add article: $e');
+    }
+  }
+
+  /// Update article (admin only)
+  Future<void> updateArticle(String id, Map<String, dynamic> updates) async {
+    try {
+      await _client
+          .from('articles')
+          .update(updates)
+          .eq('id', id);
+    } catch (e) {
+      throw Exception('Failed to update article: $e');
+    }
+  }
+
+  /// Delete article (admin only)
+  Future<void> deleteArticle(String id) async {
+    try {
+      await _client
+          .from('articles')
+          .delete()
+          .eq('id', id);
+    } catch (e) {
+      throw Exception('Failed to delete article: $e');
+    }
+  }
+
+  // ============================================
+  // ADMIN MANAGEMENT
+  // ============================================
+
+  /// Check if user is admin
+  Future<bool> isUserAdmin(String userId) async {
+    try {
+      final response = await _client
+          .from('admin_users')
+          .select()
+          .eq('user_id', userId)
+          .maybeSingle();
+
+      return response != null;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Get admin user details
+  Future<Map<String, dynamic>?> getAdminUser(String userId) async {
+    try {
+      final response = await _client
+          .from('admin_users')
+          .select()
+          .eq('user_id', userId)
+          .maybeSingle();
+
+      return response;
+    } catch (e) {
+      return null;
     }
   }
 }
+

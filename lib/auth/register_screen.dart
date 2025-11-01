@@ -64,7 +64,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           id: userCredential.user!.uid,
           name: _nameController.text.trim(),
           email: _emailController.text.trim(),
-          totalRecycled: 0,
+          totalDisposed: 0,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         );

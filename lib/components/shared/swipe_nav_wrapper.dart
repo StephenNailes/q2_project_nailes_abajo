@@ -9,8 +9,8 @@ class SwipeNavWrapper extends StatelessWidget {
 
   const SwipeNavWrapper({super.key, required this.currentIndex, required this.child});
 
-  // Keep order in sync with EcoBottomNavBar currentIndex mapping
-  static const _routes = ['/home', '/community', '/guides', '/submissions', '/profile'];
+  // Swipe order: Home (0), Community (1), Submissions (2), Guides (3), Profile (4)
+  static const _routes = ['/home', '/community', '/submissions', '/guides', '/profile'];
 
   void _goTo(BuildContext context, int index) {
     if (index < 0 || index >= _routes.length) return;

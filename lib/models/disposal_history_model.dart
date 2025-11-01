@@ -1,36 +1,36 @@
-/// Recycling history model
-class RecyclingHistoryModel {
+/// Disposal history model
+class DisposalHistoryModel {
   final String id;
   final String userId;
   final String? submissionId;
   final String itemType;
   final int quantity;
   final int earnedPoints;
-  final DateTime recycledDate;
+  final DateTime disposedDate;
 
-  RecyclingHistoryModel({
+  DisposalHistoryModel({
     required this.id,
     required this.userId,
     this.submissionId,
     required this.itemType,
     required this.quantity,
     this.earnedPoints = 0,
-    required this.recycledDate,
+    required this.disposedDate,
   });
 
   /// Create from JSON
-  factory RecyclingHistoryModel.fromJson(Map<String, dynamic> json, String docId) {
-    return RecyclingHistoryModel(
+  factory DisposalHistoryModel.fromJson(Map<String, dynamic> json, String docId) {
+    return DisposalHistoryModel(
       id: docId,
       userId: json['userId'] ?? json['user_id'] ?? '',
       submissionId: json['submissionId'] ?? json['submission_id'],
       itemType: json['itemType'] ?? json['item_type'] ?? '',
       quantity: json['quantity'] ?? 0,
       earnedPoints: json['earnedPoints'] ?? json['earned_points'] ?? 0,
-      recycledDate: json['recycledDate'] != null
-          ? DateTime.parse(json['recycledDate'].toString())
-          : (json['recycled_date'] != null
-              ? DateTime.parse(json['recycled_date'].toString())
+      disposedDate: json['disposedDate'] != null
+          ? DateTime.parse(json['disposedDate'].toString())
+          : (json['disposed_date'] != null
+              ? DateTime.parse(json['disposed_date'].toString())
               : DateTime.now()),
     );
   }
@@ -43,7 +43,7 @@ class RecyclingHistoryModel {
       'itemType': itemType,
       'quantity': quantity,
       'earnedPoints': earnedPoints,
-      'recycledDate': recycledDate.toIso8601String(),
+      'disposedDate': disposedDate.toIso8601String(),
     };
   }
 
@@ -55,12 +55,12 @@ class RecyclingHistoryModel {
       'item_type': itemType,
       'quantity': quantity,
       'earned_points': earnedPoints,
-      'recycled_date': recycledDate.toIso8601String(),
+      'disposed_date': disposedDate.toIso8601String(),
     };
   }
 
   @override
   String toString() {
-    return 'RecyclingHistoryModel(id: $id, itemType: $itemType, quantity: $quantity, points: $earnedPoints)';
+    return 'DisposalHistoryModel(id: $id, itemType: $itemType, quantity: $quantity, points: $earnedPoints)';
   }
 }

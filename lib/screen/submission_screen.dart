@@ -11,7 +11,7 @@ class SubmissionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SwipeNavWrapper(
-      currentIndex: 3,
+      currentIndex: 2,
       child: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(

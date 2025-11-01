@@ -43,11 +43,9 @@ class TabSwitcher extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        _buildTab("Featured", 0),
+        _buildTab("Videos", 0),
         const SizedBox(width: 12),
-        _buildTab("Guides", 1),
-        const SizedBox(width: 12),
-        _buildTab("Saved", 2),
+        _buildTab("Articles", 1),
       ],
     );
   }

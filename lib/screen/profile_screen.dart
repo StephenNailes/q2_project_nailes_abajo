@@ -26,7 +26,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? _profileImageUrl;
   String _userName = '';
   String _userEmail = '';
-  int _totalRecycled = 0;
+  int _totalDisposed = 0;
 
   @override
   void initState() {
@@ -47,7 +47,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _profileImageUrl = userProfile?.profileImageUrl;
           _userName = userProfile?.name ?? user.displayName ?? 'User';
           _userEmail = user.email ?? '';
-          _totalRecycled = userProfile?.totalRecycled ?? 0;
+          _totalDisposed = userProfile?.totalDisposed ?? 0;
           _isLoadingProfile = false;
         });
       }
@@ -251,7 +251,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      '$_totalRecycled Items Disposed',
+                      '$_totalDisposed Items Disposed',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 14,
@@ -301,7 +301,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       iconColor: Color(0xFF5DADE2),
                       title: "My Submissions",
                       onTap: () {
-                        GoRouter.of(context).go('/recycle-history');
+                        GoRouter.of(context).go('/disposal-history');
                       },
                     ),
                     const SizedBox(height: 14),

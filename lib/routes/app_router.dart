@@ -1,4 +1,6 @@
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'transitions.dart';
 
 // Import your screens
@@ -10,7 +12,7 @@ import '../screen/learning_hub_screen.dart';
 import '../screen/community_feed_screen.dart'; // Changed from eco_tips_screen
 import '../screen/submission_screen.dart';
 import '../screen/profile_screen.dart';
-import '../screen/recycle_history_screen.dart';
+import '../screen/disposal_history_screen.dart';
 import '../screen/settings_screen.dart';
 import '../screen/edit_profile_screen.dart';
 import '../screen/change_password_screen.dart';
@@ -18,8 +20,38 @@ import '../screen/manage_email_screen.dart';
 import '../screen/notification_screen.dart';
 import '../screen/connection_test_screen.dart';
 
+/// Stream-based refresh notifier for GoRouter
+class AuthNotifier extends ChangeNotifier {
+  AuthNotifier() {
+    FirebaseAuth.instance.authStateChanges().listen((_) {
+      notifyListeners();
+    });
+  }
+}
+
 final appRouter = GoRouter(
   initialLocation: '/login',
+  refreshListenable: AuthNotifier(),
+  redirect: (context, state) {
+    // Check if user is authenticated
+    final isLoggedIn = FirebaseAuth.instance.currentUser != null;
+    final isLoggingIn = state.matchedLocation == '/login' || 
+                       state.matchedLocation == '/register' ||
+                       state.matchedLocation == '/forgot-password';
+
+    // If user is logged in but trying to access auth screens, redirect to home
+    if (isLoggedIn && isLoggingIn) {
+      return '/home';
+    }
+
+    // If user is not logged in and trying to access protected screens, redirect to login
+    if (!isLoggedIn && !isLoggingIn) {
+      return '/login';
+    }
+
+    // No redirect needed
+    return null;
+  },
   routes: [
     GoRoute(
       path: '/login',
@@ -69,8 +101,8 @@ final appRouter = GoRouter(
       ),
     ),
     GoRoute(
-      path: '/recycle-history',
-      builder: (context, state) => const RecycleHistoryScreen(),
+      path: '/disposal-history',
+      builder: (context, state) => const DisposalHistoryScreen(),
     ),
 
     // ✅ Settings and sub-screens

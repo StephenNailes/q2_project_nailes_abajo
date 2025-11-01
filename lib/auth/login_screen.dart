@@ -84,7 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
           name: userCredential.user!.displayName ?? 'User',
           email: userCredential.user!.email!,
           profileImageUrl: userCredential.user!.photoURL,
-          totalRecycled: 0,
+          totalDisposed: 0,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(), // Add updated timestamp
         );

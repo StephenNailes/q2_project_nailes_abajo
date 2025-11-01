@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-class ItemsRecycledCard extends StatelessWidget {
+class ItemsDisposedCard extends StatelessWidget {
   final String count;
 
-  const ItemsRecycledCard({super.key, required this.count});
+  const ItemsDisposedCard({super.key, required this.count});
 
   @override
   Widget build(BuildContext context) {

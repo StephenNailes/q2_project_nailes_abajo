@@ -84,16 +84,21 @@ class FirebaseAuthService {
   // ============================================
 
   /// Sign in with Google
-  /// Always shows account picker, allowing user to choose or add a different account
+  /// Shows account picker only on first sign-in or after manual logout
   Future<UserCredential?> signInWithGoogle() async {
     try {
       debugPrint('🔵 FirebaseAuthService: Initiating Google Sign-In...');
       
-      // Sign out from Google first to force account selection
-      await _googleSignIn.signOut();
+      // Check if user is already signed in to Google
+      GoogleSignInAccount? googleUser = await _googleSignIn.signInSilently();
       
-      // Trigger the authentication flow - will always show account picker
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      // If silent sign-in fails, show account picker
+      if (googleUser == null) {
+        debugPrint('🔵 FirebaseAuthService: Silent sign-in failed, showing account picker...');
+        googleUser = await _googleSignIn.signIn();
+      } else {
+        debugPrint('✅ FirebaseAuthService: Silent sign-in successful: ${googleUser.email}');
+      }
 
       if (googleUser == null) {
         // User cancelled the sign-in
@@ -141,6 +146,12 @@ class FirebaseAuthService {
       debugPrint('❌ FirebaseAuthService: Unexpected error: $e');
       throw Exception('Failed to sign in with Google: $e');
     }
+  }
+
+  /// Force Google account picker (for switching accounts)
+  /// Call this before signInWithGoogle() to allow user to choose a different account
+  Future<void> forceAccountPicker() async {
+    await _googleSignIn.signOut();
   }
 
   // ============================================
