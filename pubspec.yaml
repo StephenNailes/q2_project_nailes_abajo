@@ -58,7 +58,7 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: false
-  image_path: "lib/assets/images/logo.png"
+  image_path: "lib/assets/images/icon.jpg"
   adaptive_icon_background: "#2ECC71"  # EcoSustain green color
-  adaptive_icon_foreground: "lib/assets/images/logo.png"
+  adaptive_icon_foreground: "lib/assets/images/icon.jpg"
 

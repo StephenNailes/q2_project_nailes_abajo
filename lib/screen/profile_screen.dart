@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
@@ -218,18 +219,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SwipeNavWrapper(
-      currentIndex: 4,
-      child: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFE9FBEF), Color(0xFFD6F5E0)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Color(0xFF2ECC71), // Green status bar
+        statusBarIconBrightness: Brightness.light, // White icons
+        statusBarBrightness: Brightness.dark, // For iOS
+      ),
+      child: SwipeNavWrapper(
+        currentIndex: 4,
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFFE9FBEF), Color(0xFFD6F5E0)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
           ),
-        ),
-        child: Scaffold(
-        backgroundColor: Colors.transparent,
+          child: Scaffold(
+          backgroundColor: Colors.transparent,
         body: RefreshIndicator(
           onRefresh: _refreshProfile,
           color: const Color(0xFF2ECC71),
@@ -499,7 +506,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         bottomNavigationBar: const EcoBottomNavBar(currentIndex: 4),
       ), // Scaffold
     ), // Container
-  ); // SwipeNavWrapper
+  ), // SwipeNavWrapper
+  ); // AnnotatedRegion
   }
 
   // Improved Profile Option Card
