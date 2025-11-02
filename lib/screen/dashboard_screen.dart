@@ -32,29 +32,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         debugPrint('📱 Loading profile for user: ${user.uid}');
-        final profile = await _supabaseService.getUserProfile(user.uid);
         
+        // CRITICAL: Set loading = false FIRST to unblock UI immediately
         if (mounted) {
           setState(() {
-            _userProfile = profile;
             _isLoading = false;
+            // Use Firebase Auth data as temporary profile
+            _userProfile = UserModel(
+              id: user.uid,
+              email: user.email ?? '',
+              name: user.displayName ?? user.email?.split('@').first ?? 'User',
+              totalDisposed: 0,
+              createdAt: DateTime.now(),
+              profileImageUrl: user.photoURL,
+            );
           });
-          
-          if (profile == null) {
-            debugPrint('⚠️ No profile found, using Firebase Auth data');
-            // Create a temporary UserModel from Firebase Auth
-            setState(() {
-              _userProfile = UserModel(
-                id: user.uid,
-                email: user.email ?? '',
-                name: user.displayName ?? user.email?.split('@').first ?? 'User',
-                totalDisposed: 0,
-                createdAt: DateTime.now(),
-                profileImageUrl: user.photoURL,
-              );
-            });
-          }
         }
+        
+        // Load Supabase profile in background (non-blocking) - DO NOT AWAIT
+        _supabaseService.getUserProfile(user.uid).timeout(
+          const Duration(seconds: 2),
+          onTimeout: () {
+            debugPrint('⚠️ Profile fetch timed out (2s), using Firebase Auth data');
+            return null;
+          },
+        ).then((profile) {
+          if (mounted && profile != null) {
+            setState(() {
+              _userProfile = profile;
+            });
+            debugPrint('✅ Supabase profile loaded');
+          }
+        }).catchError((e) {
+          debugPrint('⚠️ Failed to load Supabase profile: $e');
+          // Continue with Firebase Auth data
+        });
       } else {
         if (mounted) {
           setState(() {

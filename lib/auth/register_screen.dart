@@ -80,7 +80,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
             duration: Duration(seconds: 3),
           ),
         );
-        context.go('/home');
+        // Don't manually navigate - let GoRouter's redirect handle it
+        // The authStateChanges listener will automatically redirect to /home
       }
     } catch (e) {
       setState(() {

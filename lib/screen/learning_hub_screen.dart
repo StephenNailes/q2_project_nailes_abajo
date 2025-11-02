@@ -277,7 +277,7 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
     // Generate YouTube thumbnail URL from video ID
     final youtubeVideoId = data['youtube_video_id']?.toString() ?? '';
     final thumbnailUrl = youtubeVideoId.isNotEmpty 
-        ? 'https://img.youtube.com/vi/$youtubeVideoId/maxresdefault.jpg'
+        ? 'https://img.youtube.com/vi/$youtubeVideoId/hqdefault.jpg'  // hqdefault is most reliable
         : data['thumbnail_url']?.toString();
     
     return LearningContent(

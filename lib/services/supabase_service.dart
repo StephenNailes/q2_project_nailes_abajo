@@ -10,6 +10,32 @@ import '../models/eco_tip_model.dart';
 class SupabaseService {
   final SupabaseClient _client = Supabase.instance.client;
 
+  // ============================================
+  // PROFILE CACHE - Prevents redundant API calls
+  // ============================================
+  static UserModel? _cachedProfile;
+  static bool? _cachedAdminStatus;
+  static String? _cachedUserId;
+  static DateTime? _cacheTimestamp;
+  static const Duration _cacheExpiration = Duration(minutes: 5);
+
+  /// Clear the profile cache (call on logout or profile update)
+  static void clearCache() {
+    _cachedProfile = null;
+    _cachedAdminStatus = null;
+    _cachedUserId = null;
+    _cacheTimestamp = null;
+    debugPrint('🗑️ Profile cache cleared');
+  }
+
+  /// Check if cache is valid
+  static bool _isCacheValid(String userId) {
+    if (_cachedUserId != userId) return false;
+    if (_cacheTimestamp == null) return false;
+    final elapsed = DateTime.now().difference(_cacheTimestamp!);
+    return elapsed < _cacheExpiration;
+  }
+
   /// Get current user
   User? get currentUser => _client.auth.currentUser;
 
@@ -71,9 +97,13 @@ class SupabaseService {
   }
 
   /// Sign out
+  /// Sign out
   Future<void> signOut() async {
     try {
       await _client.auth.signOut();
+      // Clear cache on logout
+      clearCache();
+      debugPrint('✅ Signed out and cache cleared');
     } catch (e) {
       throw Exception('Failed to sign out: $e');
     }
@@ -135,8 +165,14 @@ class SupabaseService {
     }
   }
 
-  /// Get user profile
-  Future<UserModel?> getUserProfile(String userId) async {
+  /// Get user profile (with caching)
+  Future<UserModel?> getUserProfile(String userId, {bool forceRefresh = false}) async {
+    // Check cache first
+    if (!forceRefresh && _isCacheValid(userId) && _cachedProfile != null) {
+      debugPrint('💾 Using cached profile for user: $userId');
+      return _cachedProfile;
+    }
+
     try {
       debugPrint('🔵 SupabaseService: Fetching profile for user: $userId');
       
@@ -144,7 +180,14 @@ class SupabaseService {
           .from('user_profiles')
           .select()
           .eq('id', userId)
-          .maybeSingle(); // Use maybeSingle() instead of single() to allow null
+          .maybeSingle()
+          .timeout(
+            const Duration(seconds: 2),
+            onTimeout: () {
+              debugPrint('⚠️ SupabaseService: Profile fetch timed out (2s)');
+              return null;
+            },
+          );
 
       if (response == null) {
         debugPrint('⚠️ SupabaseService: No profile found for user: $userId');
@@ -157,28 +200,47 @@ class SupabaseService {
                       'User';
           final email = user.email ?? '';
           
-          // Create profile
-          await _createUserProfile(
-            userId: userId,
-            email: email,
-            name: name,
-          );
-          
-          // Fetch the newly created profile
-          final newProfile = await _client
-              .from('user_profiles')
-              .select()
-              .eq('id', userId)
-              .maybeSingle();
-              
-          if (newProfile != null) {
-            return UserModel.fromJson(newProfile, userId);
+          try {
+            // Create profile (with aggressive timeout)
+            await _createUserProfile(
+              userId: userId,
+              email: email,
+              name: name,
+            ).timeout(const Duration(seconds: 2));
+            
+            // Fetch the newly created profile (short timeout)
+            final newProfile = await _client
+                .from('user_profiles')
+                .select()
+                .eq('id', userId)
+                .maybeSingle()
+                .timeout(const Duration(seconds: 1));
+                
+            if (newProfile != null) {
+              final profile = UserModel.fromJson(newProfile, userId);
+              // Cache the newly created profile
+              _cachedProfile = profile;
+              _cachedUserId = userId;
+              _cacheTimestamp = DateTime.now();
+              return profile;
+            }
+          } catch (e) {
+            debugPrint('⚠️ Failed to create profile: $e');
+            return null;
           }
         }
         return null;
       }
 
-      return UserModel.fromJson(response, userId);
+      final profile = UserModel.fromJson(response, userId);
+      
+      // Cache the profile
+      _cachedProfile = profile;
+      _cachedUserId = userId;
+      _cacheTimestamp = DateTime.now();
+      debugPrint('✅ Profile cached for user: $userId');
+      
+      return profile;
     } catch (e) {
       debugPrint('❌ SupabaseService: Failed to get user profile: $e');
       return null; // Return null instead of throwing to allow app to function
@@ -203,6 +265,10 @@ class SupabaseService {
           .from('user_profiles')
           .update(updates)
           .eq('id', userId);
+      
+      // Clear cache after update
+      clearCache();
+      debugPrint('✅ Profile updated and cache cleared');
     } catch (e) {
       throw Exception('Failed to update user profile: $e');
     }
@@ -521,7 +587,7 @@ class SupabaseService {
             'title': title,
             'description': description,
             'youtube_video_id': youtubeVideoId,
-            'thumbnail_url': thumbnailUrl ?? 'https://img.youtube.com/vi/$youtubeVideoId/maxresdefault.jpg',
+            'thumbnail_url': thumbnailUrl ?? 'https://img.youtube.com/vi/$youtubeVideoId/hqdefault.jpg',
             'category': category,
             'duration': duration,
             'author': author,
@@ -722,16 +788,43 @@ class SupabaseService {
   // ============================================
 
   /// Check if user is admin
-  Future<bool> isUserAdmin(String userId) async {
+  /// Check if user is admin (with caching)
+  Future<bool> isUserAdmin(String userId, {bool forceRefresh = false}) async {
+    // Check cache first
+    if (!forceRefresh && _isCacheValid(userId) && _cachedAdminStatus != null) {
+      debugPrint('💾 Using cached admin status for user: $userId');
+      return _cachedAdminStatus!;
+    }
+
     try {
+      debugPrint('🔵 SupabaseService: Checking admin status for user: $userId');
+      
       final response = await _client
           .from('admin_users')
           .select()
           .eq('user_id', userId)
-          .maybeSingle();
+          .maybeSingle()
+          .timeout(
+            const Duration(seconds: 2),
+            onTimeout: () {
+              debugPrint('⚠️ Admin check timed out (2s)');
+              return null;
+            },
+          );
 
-      return response != null;
+      final isAdmin = response != null;
+      
+      // Cache the admin status
+      _cachedAdminStatus = isAdmin;
+      if (_cachedUserId == null) {
+        _cachedUserId = userId;
+        _cacheTimestamp = DateTime.now();
+      }
+      
+      debugPrint('✅ Admin status cached: $isAdmin');
+      return isAdmin;
     } catch (e) {
+      debugPrint('⚠️ Failed to check admin status: $e');
       return false;
     }
   }

@@ -43,9 +43,8 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text,
       );
       
-      if (mounted) {
-        context.go('/home');
-      }
+      // Don't manually navigate - let GoRouter's redirect handle it
+      // The authStateChanges listener will automatically redirect to /home
     } catch (e) {
       setState(() {
         _errorMessage = _getErrorMessage(e.toString());
@@ -97,10 +96,9 @@ class _LoginScreenState extends State<LoginScreen> {
         debugPrint('⚠️ Supabase profile creation failed: $supabaseError');
       }
                    
-      if (mounted) {
-        debugPrint('🔵 Navigating to /home');
-        context.go('/home');
-      }
+      // Don't manually navigate - let GoRouter's redirect handle it
+      // The authStateChanges listener will automatically redirect to /home
+      debugPrint('✅ Login successful, waiting for auto-redirect to /home');
     } catch (e) {
       debugPrint('❌ Google Sign-In error: $e');
       if (mounted) {

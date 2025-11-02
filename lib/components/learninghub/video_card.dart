@@ -50,13 +50,13 @@ class _VideoCardState extends State<VideoCard> {
       return [url]; // Return original URL if no video ID found
     }
     
-    // Return multiple quality options as fallback
+    // Return multiple quality options as fallback (ordered by reliability)
     return [
-      'https://img.youtube.com/vi/$videoId/maxresdefault.jpg', // Highest quality
-      'https://img.youtube.com/vi/$videoId/sddefault.jpg',     // Standard quality
-      'https://img.youtube.com/vi/$videoId/hqdefault.jpg',     // High quality
+      'https://img.youtube.com/vi/$videoId/hqdefault.jpg',     // Most reliable, always exists
       'https://img.youtube.com/vi/$videoId/mqdefault.jpg',     // Medium quality
-      'https://img.youtube.com/vi/$videoId/default.jpg',       // Default quality
+      'https://img.youtube.com/vi/$videoId/sddefault.jpg',     // Standard quality (may not exist)
+      'https://img.youtube.com/vi/$videoId/maxresdefault.jpg', // Highest quality (often missing)
+      'https://img.youtube.com/vi/$videoId/default.jpg',       // Lowest quality fallback
     ];
   }
 

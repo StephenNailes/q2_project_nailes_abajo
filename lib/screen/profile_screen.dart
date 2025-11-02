@@ -8,6 +8,7 @@ import '../services/firebase_auth_service.dart';
 import '../components/shared/swipe_nav_wrapper.dart';
 import '../services/firebase_storage_service.dart';
 import '../services/supabase_service.dart';
+import '../models/user_model.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -23,6 +24,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final ImagePicker _imagePicker = ImagePicker();
   bool _isUploading = false;
   bool _isLoadingProfile = true;
+  bool _isAdmin = false;
   String? _profileImageUrl;
   String _userName = '';
   String _userEmail = '';
@@ -46,20 +48,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       debugPrint('📱 Loading profile for user: ${user.uid}');
 
-      // Get user profile from Supabase
-      final userProfile = await _supabaseService.getUserProfile(user.uid);
-      
+      // CRITICAL: Set loading = false and show Firebase data FIRST
       if (mounted) {
         setState(() {
-          _profileImageUrl = userProfile?.profileImageUrl ?? user.photoURL;
-          _userName = userProfile?.name ?? user.displayName ?? user.email?.split('@').first ?? 'User';
+          _profileImageUrl = user.photoURL;
+          _userName = user.displayName ?? user.email?.split('@').first ?? 'User';
           _userEmail = user.email ?? '';
-          _totalDisposed = userProfile?.totalDisposed ?? 0;
+          _totalDisposed = 0;
+          _isAdmin = false;
           _isLoadingProfile = false;
         });
-        
-        debugPrint('✅ Profile loaded: $_userName');
       }
+
+      // Load Supabase data in background (non-blocking) - DO NOT AWAIT
+      Future.wait([
+        _supabaseService.getUserProfile(user.uid),
+        _supabaseService.isUserAdmin(user.uid),
+      ]).timeout(
+        const Duration(seconds: 2),
+        onTimeout: () {
+          debugPrint('⚠️ Profile fetch timed out (2s)');
+          return [null, false];
+        },
+      ).then((results) {
+        final userProfile = results[0] as UserModel?;
+        final isAdmin = results[1] as bool;
+        
+        debugPrint('🔐 Admin status: $isAdmin');
+        
+        if (mounted) {
+          setState(() {
+            _profileImageUrl = userProfile?.profileImageUrl ?? user.photoURL;
+            _userName = userProfile?.name ?? user.displayName ?? user.email?.split('@').first ?? 'User';
+            _userEmail = user.email ?? '';
+            _totalDisposed = userProfile?.totalDisposed ?? 0;
+            _isAdmin = isAdmin;
+          });
+          
+          debugPrint('✅ Profile loaded: $_userName');
+        }
+      }).catchError((e) {
+        debugPrint('⚠️ Error loading profile from Supabase: $e');
+        // Already have Firebase Auth fallback data set above
+      });
     } catch (e) {
       debugPrint('❌ Error loading profile: $e');
       if (mounted) {
@@ -70,9 +101,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _userName = user?.displayName ?? user?.email?.split('@').first ?? 'User';
           _userEmail = user?.email ?? '';
           _totalDisposed = 0;
+          _isAdmin = false;
           _isLoadingProfile = false;
         });
       }
+    }
+  }
+
+  /// Force refresh profile (for pull-to-refresh)
+  Future<void> _refreshProfile() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    debugPrint('🔄 Force refreshing profile...');
+
+    try {
+      // Force refresh from Supabase (bypass cache)
+      final results = await Future.wait([
+        _supabaseService.getUserProfile(user.uid, forceRefresh: true),
+        _supabaseService.isUserAdmin(user.uid, forceRefresh: true),
+      ]).timeout(
+        const Duration(seconds: 3),
+        onTimeout: () {
+          debugPrint('⚠️ Refresh timed out');
+          return [null, false];
+        },
+      );
+
+      if (mounted) {
+        final userProfile = results[0] as UserModel?;
+        final isAdmin = results[1] as bool;
+
+        setState(() {
+          if (userProfile != null) {
+            _profileImageUrl = userProfile.profileImageUrl ?? user.photoURL;
+            _userName = userProfile.name;
+            _userEmail = user.email ?? '';
+            _totalDisposed = userProfile.totalDisposed;
+          }
+          _isAdmin = isAdmin;
+        });
+
+        debugPrint('✅ Profile refreshed');
+      }
+    } catch (e) {
+      debugPrint('⚠️ Refresh failed: $e');
     }
   }
 
@@ -157,7 +230,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: Column(
+        body: RefreshIndicator(
+          onRefresh: _refreshProfile,
+          color: const Color(0xFF2ECC71),
+          child: ListView(
+            children: [
+              Column(
           children: [
             // Profile Header with Gradient
             Container(
@@ -277,14 +355,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 28),
 
             // Profile Options Section
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+            Container(
+              width: double.infinity,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                     const Text(
                       "Profile",
                       style: TextStyle(
@@ -306,6 +383,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       },
                     ),
                     const SizedBox(height: 14),
+
+                    // Admin Console (conditional)
+                    if (_isAdmin) ...[
+                      _profileOption(
+                        icon: Icons.admin_panel_settings,
+                        iconColor: const Color(0xFFE74C3C),
+                        title: "Admin Console",
+                        onTap: () {
+                          GoRouter.of(context).go('/admin');
+                        },
+                      ),
+                      const SizedBox(height: 14),
+                    ],
 
                     // My Submissions
                     _profileOption(
@@ -369,11 +459,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       // Sign out from Firebase Auth and Google
                                       await _authService.signOut();
                                       
-                                      // Navigate to login screen
+                                      // Close loading dialog
                                       if (context.mounted) {
-                                        Navigator.of(context).pop(); // Close loading
-                                        GoRouter.of(context).go('/login');
+                                        Navigator.of(context).pop();
                                       }
+                                      
+                                      // Don't manually navigate - let GoRouter's redirect handle it
+                                      // The authStateChanges listener will automatically redirect to /login
                                     } catch (e) {
                                       if (context.mounted) {
                                         Navigator.of(context).pop(); // Close loading
@@ -396,9 +488,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ],
                 ),
               ),
-            ),
           ],
         ),
+            ], // ListView children
+          ), // ListView
+        ), // RefreshIndicator
         floatingActionButton: const SubmissionButton(),
         floatingActionButtonLocation:
             FloatingActionButtonLocation.centerDocked,

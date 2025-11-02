@@ -19,6 +19,11 @@ import '../screen/change_password_screen.dart';
 import '../screen/manage_email_screen.dart';
 import '../screen/notification_screen.dart';
 import '../screen/connection_test_screen.dart';
+import '../screen/admin/admin_dashboard_screen.dart';
+import '../screen/admin/manage_videos_screen.dart';
+import '../screen/admin/manage_articles_screen.dart';
+import '../screen/admin/add_video_screen.dart';
+import '../screen/admin/add_article_screen.dart';
 
 /// Stream-based refresh notifier for GoRouter
 class AuthNotifier extends ChangeNotifier {
@@ -133,6 +138,28 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/test',
       builder: (context, state) => const ConnectionTestScreen(),
+    ),
+    
+    // ✅ Admin Panel Routes
+    GoRoute(
+      path: '/admin',
+      builder: (context, state) => const AdminDashboardScreen(),
+    ),
+    GoRoute(
+      path: '/admin/videos',
+      builder: (context, state) => const ManageVideosScreen(),
+    ),
+    GoRoute(
+      path: '/admin/videos/add',
+      builder: (context, state) => const AddVideoScreen(),
+    ),
+    GoRoute(
+      path: '/admin/articles',
+      builder: (context, state) => const ManageArticlesScreen(),
+    ),
+    GoRoute(
+      path: '/admin/articles/add',
+      builder: (context, state) => const AddArticleScreen(),
     ),
   ],
 );
