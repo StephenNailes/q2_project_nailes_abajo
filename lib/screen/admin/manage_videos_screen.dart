@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/supabase_service.dart';
-import '../../components/admin/admin_drawer.dart';
+import '../../components/dashboard/admin_dashboard_drawer.dart';
 import '../../services/youtube_service.dart';
 
 class ManageVideosScreen extends StatefulWidget {
@@ -49,7 +49,7 @@ class _ManageVideosScreenState extends State<ManageVideosScreen> {
                   backgroundColor: Colors.red,
                 ),
               );
-              context.go('/profile');
+              context.go('/home');
             }
           });
         }
@@ -69,7 +69,7 @@ class _ManageVideosScreenState extends State<ManageVideosScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) context.go('/profile');
+          if (mounted) context.go('/home');
         });
       }
     }
@@ -156,7 +156,7 @@ class _ManageVideosScreenState extends State<ManageVideosScreen> {
           ),
           child: const Center(
             child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2ECC71)),
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE74C3C)),
             ),
           ),
         ),
@@ -185,7 +185,7 @@ class _ManageVideosScreenState extends State<ManageVideosScreen> {
           'Manage Videos',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: const Color(0xFF2ECC71),
+        backgroundColor: const Color(0xFFE74C3C),
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
@@ -196,7 +196,7 @@ class _ManageVideosScreenState extends State<ManageVideosScreen> {
           ),
         ],
       ),
-      drawer: const AdminDrawer(currentRoute: '/admin/videos'),
+      drawer: const AdminDashboardDrawer(currentRoute: '/admin/videos'),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -255,7 +255,7 @@ class _ManageVideosScreenState extends State<ManageVideosScreen> {
                               icon: const Icon(Icons.add),
                               label: const Text('Add Video'),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF2ECC71),
+                                backgroundColor: const Color(0xFFE74C3C),
                                 foregroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 24,

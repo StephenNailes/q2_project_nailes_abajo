@@ -398,7 +398,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         iconColor: const Color(0xFFE74C3C),
                         title: "Admin Console",
                         onTap: () {
-                          GoRouter.of(context).go('/admin');
+                          // Route admin console to the admin home (/home) to avoid duplicate Admin screens
+                          GoRouter.of(context).go('/home');
                         },
                       ),
                       const SizedBox(height: 14),
@@ -449,33 +450,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 TextButton(
                                   child: const Text("Log Out"),
                                   onPressed: () async {
+                                    // Close the confirmation dialog first
                                     Navigator.of(dialogContext).pop();
                                     
-                                    // Show loading indicator
-                                    if (context.mounted) {
-                                      showDialog(
-                                        context: context,
-                                        barrierDismissible: false,
-                                        builder: (context) => const Center(
-                                          child: CircularProgressIndicator(),
-                                        ),
-                                      );
-                                    }
+                                    // CRITICAL FIX: Don't show loading dialog
+                                    // The authStateChanges listener will immediately redirect to /login
+                                    // when signOut() completes, invalidating the context
+                                    // So we can't safely pop a dialog afterward
                                     
                                     try {
                                       // Sign out from Firebase Auth and Google
+                                      // The authStateChanges listener in app_router.dart will
+                                      // automatically redirect to /login
                                       await _authService.signOut();
-                                      
-                                      // Close loading dialog
-                                      if (context.mounted) {
-                                        Navigator.of(context).pop();
-                                      }
-                                      
-                                      // Don't manually navigate - let GoRouter's redirect handle it
-                                      // The authStateChanges listener will automatically redirect to /login
                                     } catch (e) {
+                                      // Only show error if logout fails AND context is still valid
                                       if (context.mounted) {
-                                        Navigator.of(context).pop(); // Close loading
                                         ScaffoldMessenger.of(context).showSnackBar(
                                           SnackBar(
                                             content: Text('Logout failed: ${e.toString()}'),

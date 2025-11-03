@@ -3,6 +3,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../models/user_model.dart';
+import 'supabase_service.dart';
 
 /// Firebase Authentication Service
 /// Handles user authentication with Email/Password and Google Sign-In
@@ -284,6 +285,10 @@ class FirebaseAuthService {
         _auth.signOut(),
         _googleSignIn.signOut(),
       ]);
+      
+      // CRITICAL: Clear Supabase cache after signing out
+      SupabaseService.clearCache();
+      debugPrint('✅ Signed out and cleared Supabase cache');
     } catch (e) {
       throw Exception('Failed to sign out: $e');
     }

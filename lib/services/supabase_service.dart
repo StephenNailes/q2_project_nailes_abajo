@@ -790,14 +790,14 @@ class SupabaseService {
   /// Check if user is admin
   /// Check if user is admin (with caching)
   Future<bool> isUserAdmin(String userId, {bool forceRefresh = false}) async {
-    // Check cache first
+    // Check cache first (skip if force refresh)
     if (!forceRefresh && _isCacheValid(userId) && _cachedAdminStatus != null) {
       debugPrint('💾 Using cached admin status for user: $userId');
       return _cachedAdminStatus!;
     }
 
     try {
-      debugPrint('🔵 SupabaseService: Checking admin status for user: $userId');
+      debugPrint('🔵 SupabaseService: Checking admin status for user: $userId ${forceRefresh ? "(FORCE REFRESH)" : ""}');
       
       final response = await _client
           .from('admin_users')
@@ -814,12 +814,10 @@ class SupabaseService {
 
       final isAdmin = response != null;
       
-      // Cache the admin status
+      // Always update cache after fresh query
       _cachedAdminStatus = isAdmin;
-      if (_cachedUserId == null) {
-        _cachedUserId = userId;
-        _cacheTimestamp = DateTime.now();
-      }
+      _cachedUserId = userId;
+      _cacheTimestamp = DateTime.now();
       
       debugPrint('✅ Admin status cached: $isAdmin');
       return isAdmin;

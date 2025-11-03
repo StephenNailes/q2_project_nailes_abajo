@@ -19,11 +19,13 @@ import '../screen/change_password_screen.dart';
 import '../screen/manage_email_screen.dart';
 import '../screen/notification_screen.dart';
 import '../screen/connection_test_screen.dart';
-import '../screen/admin/admin_dashboard_screen.dart';
 import '../screen/admin/manage_videos_screen.dart';
 import '../screen/admin/manage_articles_screen.dart';
 import '../screen/admin/add_video_screen.dart';
 import '../screen/admin/add_article_screen.dart';
+import '../screen/admin/admin_notification_screen.dart';
+import '../screen/admin/admin_settings_screen.dart';
+import '../screen/admin_diagnostic_screen.dart';
 
 /// Stream-based refresh notifier for GoRouter
 class AuthNotifier extends ChangeNotifier {
@@ -140,10 +142,17 @@ final appRouter = GoRouter(
       builder: (context, state) => const ConnectionTestScreen(),
     ),
     
+    // ✅ Admin Diagnostic Tool
+    GoRoute(
+      path: '/admin-diagnostic',
+      builder: (context, state) => const AdminDiagnosticScreen(),
+    ),
+    
     // ✅ Admin Panel Routes
     GoRoute(
       path: '/admin',
-      builder: (context, state) => const AdminDashboardScreen(),
+      // Keep /admin available but show the main DashboardScreen to avoid duplicate admin pages.
+      builder: (context, state) => const DashboardScreen(),
     ),
     GoRoute(
       path: '/admin/videos',
@@ -160,6 +169,16 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/admin/articles/add',
       builder: (context, state) => const AddArticleScreen(),
+    ),
+    
+    // ✅ Admin Account Routes
+    GoRoute(
+      path: '/admin/notifications',
+      builder: (context, state) => const AdminNotificationScreen(),
+    ),
+    GoRoute(
+      path: '/admin/settings',
+      builder: (context, state) => const AdminSettingsScreen(),
     ),
   ],
 );

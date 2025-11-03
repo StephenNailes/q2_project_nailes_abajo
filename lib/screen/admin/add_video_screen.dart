@@ -151,7 +151,7 @@ class _AddVideoScreenState extends State<AddVideoScreen> {
           'Add Video',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: const Color(0xFF2ECC71),
+        backgroundColor: const Color(0xFFE74C3C),
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -352,7 +352,7 @@ class _AddVideoScreenState extends State<AddVideoScreen> {
                     Switch(
                       value: _isFeatured,
                       onChanged: (value) => setState(() => _isFeatured = value),
-                      activeColor: const Color(0xFF2ECC71),
+                      activeColor: const Color(0xFFE74C3C),
                     ),
                   ],
                 ),
@@ -363,7 +363,7 @@ class _AddVideoScreenState extends State<AddVideoScreen> {
               ElevatedButton(
                 onPressed: _isLoading ? null : _submit,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2ECC71),
+                  backgroundColor: const Color(0xFFE74C3C),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(

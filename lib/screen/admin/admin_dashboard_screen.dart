@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/supabase_service.dart';
-import '../../components/admin/admin_drawer.dart';
+import '../../components/dashboard/admin_dashboard_drawer.dart';
 import 'package:go_router/go_router.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
@@ -51,7 +51,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   backgroundColor: Colors.red,
                 ),
               );
-              context.go('/profile');
+              context.go('/home');
             }
           });
         }
@@ -79,7 +79,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 backgroundColor: Colors.red,
               ),
             );
-            context.go('/profile');
+            context.go('/home');
           }
         });
       }
@@ -118,7 +118,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ),
           child: const Center(
             child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2ECC71)),
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE74C3C)),
             ),
           ),
         ),
@@ -149,7 +149,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 const Text('Admin privileges required'),
                 const SizedBox(height: 24),
                 ElevatedButton(
-                  onPressed: () => context.go('/profile'),
+                  onPressed: () => context.go('/home'),
                   child: const Text('Go Back'),
                 ),
               ],
@@ -166,11 +166,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           'Admin Dashboard',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: const Color(0xFF2ECC71),
+        backgroundColor: const Color(0xFFE74C3C),
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      drawer: const AdminDrawer(currentRoute: '/admin'),
+      drawer: const AdminDashboardDrawer(currentRoute: '/admin'),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
