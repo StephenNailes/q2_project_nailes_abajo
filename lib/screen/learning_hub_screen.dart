@@ -369,12 +369,12 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
           actions: [
             IconButton(
               icon: const Icon(Icons.notifications_outlined, color: Colors.black87),
-              onPressed: () => context.go('/notifications'),
+              onPressed: () => context.push('/notifications'),
               tooltip: 'Notifications',
             ),
             IconButton(
               icon: const Icon(Icons.settings_outlined, color: Colors.black87),
-              onPressed: () => context.go('/settings'),
+              onPressed: () => context.push('/settings'),
               tooltip: 'Settings',
             ),
           ],

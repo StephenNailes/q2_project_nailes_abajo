@@ -353,7 +353,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 padding: const EdgeInsets.only(right: 8),
                 child: IconButton(
                   icon: const Icon(Icons.notifications_outlined, color: Colors.black87),
-                  onPressed: () => context.go('/notifications'),
+                  onPressed: () => context.push('/notifications'),
                   tooltip: 'Notifications',
                 ),
               ),
@@ -361,7 +361,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 padding: const EdgeInsets.only(right: 16),
                 child: IconButton(
                   icon: const Icon(Icons.settings_outlined, color: Colors.black87),
-                  onPressed: () => context.go('/settings'),
+                  onPressed: () => context.push('/settings'),
                   tooltip: 'Settings',
                 ),
               ),
@@ -497,10 +497,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: _buildActionCard(
+                          title: 'Find Locations',
+                          icon: Icons.map_outlined,
+                          color: const Color(0xFF3498DB),
+                          onTap: () => context.go('/maps'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildActionCard(
                           title: 'Learning Hub',
                           icon: Icons.school_outlined,
                           color: const Color(0xFF9B59B6),
                           onTap: () => context.go('/guides'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildActionCard(
+                          title: 'Community',
+                          icon: Icons.people_outline,
+                          color: const Color(0xFFF39C12),
+                          onTap: () => context.go('/community'),
                         ),
                       ),
                     ],
@@ -529,32 +551,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
-
-                  // Recent Activity Section
-                  _buildSectionHeader('Why Proper E-Waste Disposal Matters'),
-                  const SizedBox(height: 12),
-                  _buildInfoCard(
-                    title: 'Environmental Impact',
-                    description: 'Proper e-waste disposal prevents toxic materials from contaminating our soil and water.',
-                    icon: Icons.public,
-                    color: const Color(0xFF27AE60),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildInfoCard(
-                    title: 'Resource Recovery',
-                    description: 'Recycling electronics helps recover valuable materials like gold, silver, and copper.',
-                    icon: Icons.autorenew,
-                    color: const Color(0xFFF39C12),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildInfoCard(
-                    title: 'Community Health',
-                    description: 'Responsible disposal protects communities from exposure to harmful chemicals.',
-                    icon: Icons.favorite_outline,
-                    color: const Color(0xFFE74C3C),
-                  ),
-                  
                   const SizedBox(height: 24), // Space for bottom nav
                 ],
               ),

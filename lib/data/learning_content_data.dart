@@ -1,7 +1,8 @@
 import '../models/learning_content_model.dart';
 
 /// Data source for learning content (videos and articles)
-/// TODO: Replace with API calls to backend/Supabase
+/// NOTE: This is dummy data. Replace with Supabase queries using supabaseService.getLearningContent()
+/// Migration available: supabase_migration_learning_content.sql
 class LearningContentData {
   
   // ========================================
@@ -16,7 +17,7 @@ class LearningContentData {
       type: ContentType.video,
       category: ContentCategory.smartphone,
       thumbnailUrl: 'lib/assets/images/apple-ip.jpg',
-      videoUrl: 'https://youtube.com/watch?v=example1', // TODO: Replace with real URL
+      videoUrl: 'https://youtube.com/watch?v=example1', // Placeholder - update with actual video URLs
       duration: const Duration(minutes: 5, seconds: 30),
       author: 'TechSustain Team',
       publishedDate: DateTime.now().subtract(const Duration(days: 7)),

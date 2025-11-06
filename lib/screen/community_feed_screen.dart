@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../components/eco_bottom_nav.dart';
 import '../components/shared/swipe_nav_wrapper.dart';
 import '../components/community/community_post_card.dart';
+import '../services/supabase_service.dart';
+import '../models/community_post_model.dart';
 
 class CommunityFeedScreen extends StatefulWidget {
   const CommunityFeedScreen({super.key});
@@ -13,68 +16,22 @@ class CommunityFeedScreen extends StatefulWidget {
 
 class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
   final ScrollController _scrollController = ScrollController();
+  final SupabaseService _supabaseService = SupabaseService();
   
   // Filter states
   String _selectedAction = 'All'; // All, Disposed, Repurposed
   String _selectedItemType = 'All'; // All, Smartphone, Laptop, Charger, etc.
   
-  // TODO: Replace with real data from Supabase
-  final List<Map<String, dynamic>> _communityPosts = [
-    {
-      'id': '1',
-      'userId': 'user123',
-      'userName': 'Sarah Chen',
-      'userAvatar': 'lib/assets/images/kert.jpg',
-      'itemType': 'Smartphone',
-      'itemBrand': 'iPhone 12',
-      'quantity': 2,
-      'location': 'Green Valley Disposal Center',
-      'locationAddress': '123 Eco Street, Green City',
-      'action': 'Disposed',
-      'images': ['lib/assets/images/apple-ip.jpg'],
-      'description': 'Successfully disposed of my old iPhone 12. The staff was very helpful and explained how they will extract valuable materials responsibly!',
-      'timestamp': DateTime.now().subtract(const Duration(hours: 2)),
-      'likes': 24,
-      'comments': 5,
-      'isLiked': false,
-    },
-    {
-      'id': '2',
-      'userId': 'user456',
-      'userName': 'Kert Abajo',
-      'userAvatar': 'lib/assets/images/kert.jpg',
-      'itemType': 'Laptop',
-      'itemBrand': 'MacBook Pro 2015',
-      'quantity': 1,
-      'location': 'Tech Refurbish Hub',
-      'locationAddress': '456 Sustainability Ave',
-      'action': 'Repurposed',
-      'images': ['lib/assets/images/macbook.jpg'],
-      'description': 'Gave my old MacBook to Tech Refurbish Hub. They will clean it up and donate it to students in need. Feels great to give back!',
-      'timestamp': DateTime.now().subtract(const Duration(hours: 5)),
-      'likes': 38,
-      'comments': 12,
-      'isLiked': true,
-    },
-    {
-      'id': '3',
-      'userId': 'user789',
-      'userName': 'Alex Johnson',
-      'userAvatar': 'lib/assets/images/kert.jpg',
-      'itemType': 'Charger',
-      'itemBrand': 'USB-C Chargers',
-      'quantity': 5,
-      'location': 'EcoSustain Drop-off Point',
-      'locationAddress': '789 Earth Street',
-      'action': 'Disposed',
-      'images': ['lib/assets/images/charger.jpg'],
-      'description': 'Cleaned out my drawer and found so many old chargers! This drop-off point made it super easy.',
-      'timestamp': DateTime.now().subtract(const Duration(days: 1)),
-      'likes': 15,
-      'comments': 3,
-      'isLiked': false,
-    },
-  ];
+  // Loading and data states
+  bool _isLoading = true;
+  String? _errorMessage;
+  List<CommunityPostModel> _communityPosts = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCommunityPosts();
+  }
 
   @override
   void dispose() {
@@ -82,14 +39,177 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
     super.dispose();
   }
 
-  void _handleLike(String postId) {
+  /// Load community posts from Supabase
+  Future<void> _loadCommunityPosts() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+
+      debugPrint('🔵 Loading community posts...');
+      
+      // Get Firebase user ID for liked posts
+      final firebaseUser = FirebaseAuth.instance.currentUser;
+      
+      final postsData = await _supabaseService.getAllCommunityPosts(
+        limit: 50,
+        currentFirebaseUserId: firebaseUser?.uid,
+      );
+      
+      final posts = postsData.map((data) {
+        return CommunityPostModel.fromJson(
+          data,
+          data['id'],
+          userData: data['user_data'],
+          isLikedByCurrentUser: data['is_liked_by_current_user'] ?? false,
+        );
+      }).toList();
+
+      if (mounted) {
+        setState(() {
+          _communityPosts = posts;
+          _isLoading = false;
+        });
+        debugPrint('✅ Loaded ${posts.length} community posts');
+      }
+    } catch (e) {
+      debugPrint('❌ Error loading community posts: $e');
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString();
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleLike(String postId) async {
     if (!mounted) return;
-    setState(() {
-      final post = _communityPosts.firstWhere((p) => p['id'] == postId);
-      post['isLiked'] = !post['isLiked'];
-      post['likes'] += post['isLiked'] ? 1 : -1;
-    });
-    // TODO: Update like status in Supabase
+    
+    try {
+      // Get current Firebase Auth user
+      final firebaseUser = FirebaseAuth.instance.currentUser;
+      if (firebaseUser == null) {
+        throw Exception('User not logged in');
+      }
+      final userId = firebaseUser.uid;
+
+      // Find the post
+      final postIndex = _communityPosts.indexWhere((p) => p.id == postId);
+      if (postIndex == -1) return;
+
+      final post = _communityPosts[postIndex];
+      final isCurrentlyLiked = post.isLikedByCurrentUser;
+
+      // Optimistic update
+      setState(() {
+        _communityPosts[postIndex] = post.copyWith(
+          isLikedByCurrentUser: !isCurrentlyLiked,
+          likesCount: post.likesCount + (isCurrentlyLiked ? -1 : 1),
+        );
+      });
+
+      // Update backend
+      if (isCurrentlyLiked) {
+        await _supabaseService.unlikePost(postId, userId);
+      } else {
+        await _supabaseService.likePost(postId, userId);
+        
+        // Create notification for post owner (if not liking own post)
+        if (userId != post.userId) {
+          final currentUserProfile = await _supabaseService.getUserProfile(userId);
+          await _supabaseService.createNotification(
+            userId: post.userId,
+            type: 'like',
+            title: 'New like on your post',
+            message: '${currentUserProfile?.name ?? 'Someone'} liked your ${post.itemType} disposal post',
+            actorId: userId,
+            actorName: currentUserProfile?.name,
+            actorProfileImage: currentUserProfile?.profileImageUrl,
+            relatedPostId: postId,
+          );
+        }
+      }
+      
+      debugPrint('✅ Post ${isCurrentlyLiked ? 'unliked' : 'liked'} successfully');
+    } catch (e) {
+      debugPrint('❌ Error toggling like: $e');
+      // Revert optimistic update
+      await _loadCommunityPosts();
+    }
+  }
+
+  Future<void> _handleDeletePost(String postId, String postUserId) async {
+    if (!mounted) return;
+
+    try {
+      // Get current Firebase Auth user
+      final firebaseUser = FirebaseAuth.instance.currentUser;
+      if (firebaseUser == null) {
+        throw Exception('User not logged in');
+      }
+      final userId = firebaseUser.uid;
+
+      // Verify user owns the post
+      if (userId != postUserId) {
+        throw Exception('You can only delete your own posts');
+      }
+
+      // Show loading
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2ECC71)),
+          ),
+        ),
+      );
+
+      // Optimistically remove from UI
+      setState(() {
+        _communityPosts.removeWhere((p) => p.id == postId);
+      });
+
+      // Delete from backend
+      await _supabaseService.deletePost(postId, userId);
+
+      if (mounted) {
+        // Close loading dialog
+        Navigator.of(context).pop();
+        
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Post deleted successfully'),
+            backgroundColor: Color(0xFF2ECC71),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+
+      debugPrint('✅ Post deleted successfully');
+    } catch (e) {
+      debugPrint('❌ Error deleting post: $e');
+
+      if (mounted) {
+        // Close loading dialog if open
+        Navigator.of(context).pop();
+
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete post: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+
+        // Reload posts to revert optimistic update
+        await _loadCommunityPosts();
+      }
+    }
   }
 
   void _showFilterOptions() {
@@ -251,16 +371,18 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
     );
   }
 
-  List<Map<String, dynamic>> _getFilteredPosts() {
+  List<CommunityPostModel> _getFilteredPosts() {
     return _communityPosts.where((post) {
       // Filter by action
-      if (_selectedAction != 'All' && post['action'] != _selectedAction) {
-        return false;
+      if (_selectedAction != 'All') {
+        final actionMatch = _selectedAction.toLowerCase() == post.action.toLowerCase();
+        if (!actionMatch) return false;
       }
       
       // Filter by item type
-      if (_selectedItemType != 'All' && post['itemType'] != _selectedItemType) {
-        return false;
+      if (_selectedItemType != 'All') {
+        final typeMatch = _selectedItemType.toLowerCase() == post.itemType.toLowerCase();
+        if (!typeMatch) return false;
       }
       
       return true;
@@ -301,24 +423,49 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
           actions: [
             IconButton(
               icon: const Icon(Icons.notifications_outlined, color: Colors.black87),
-              onPressed: () => context.go('/notifications'),
+              onPressed: () => context.push('/notifications'),
               tooltip: 'Notifications',
             ),
             IconButton(
               icon: const Icon(Icons.settings_outlined, color: Colors.black87),
-              onPressed: () => context.go('/settings'),
+              onPressed: () => context.push('/settings'),
               tooltip: 'Settings',
             ),
           ],
         ),
-        body: RefreshIndicator(
-          onRefresh: () async {
-            // TODO: Refresh posts from Supabase
-            await Future.delayed(const Duration(seconds: 1));
-            if (mounted) {
-              setState(() {});
-            }
-          },
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator(color: Color(0xFF2ECC71)))
+            : _errorMessage != null
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error_outline, size: 60, color: Colors.red),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Failed to load posts',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _errorMessage!,
+                          style: TextStyle(color: Colors.grey[600]),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: _loadCommunityPosts,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF2ECC71),
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  )
+                : RefreshIndicator(
+          onRefresh: _loadCommunityPosts,
           child: ListView.builder(
             controller: _scrollController,
             padding: const EdgeInsets.all(16),
@@ -329,7 +476,7 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 8),
                     
                     // Filter/Sort header
                     Row(
@@ -418,17 +565,19 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
               // Community post cards
               final filteredPosts = _getFilteredPosts();
               final post = filteredPosts[index - 1];
+              final firebaseUser = FirebaseAuth.instance.currentUser;
+              final isOwnPost = firebaseUser?.uid == post.userId;
+              
               return Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: CommunityPostCard(
                   post: post,
-                  onLike: () => _handleLike(post['id']),
+                  onLike: () => _handleLike(post.id),
                   onComment: () {
-                    // TODO: Navigate to comments screen
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Comments feature coming soon!')),
-                    );
+                    context.push('/community/post/${post.id}/comments?ownerId=${post.userId}');
                   },
+                  isOwnPost: isOwnPost,
+                  onDelete: isOwnPost ? () => _handleDeletePost(post.id, post.userId) : null,
                 ),
               );
             },

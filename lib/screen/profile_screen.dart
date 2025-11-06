@@ -386,7 +386,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       iconColor: Color(0xFFFFA726),
                       title: "Notifications",
                       onTap: () {
-                        GoRouter.of(context).go('/notifications');
+                        GoRouter.of(context).push('/notifications');
                       },
                     ),
                     const SizedBox(height: 14),

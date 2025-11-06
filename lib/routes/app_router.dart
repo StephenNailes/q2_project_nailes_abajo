@@ -17,8 +17,9 @@ import '../screen/settings_screen.dart';
 import '../screen/edit_profile_screen.dart';
 import '../screen/change_password_screen.dart';
 import '../screen/manage_email_screen.dart';
-import '../screen/notification_screen.dart';
+import '../screen/notifications_screen.dart';
 import '../screen/connection_test_screen.dart';
+import '../screen/maps_screen.dart';
 import '../screen/admin/manage_videos_screen.dart';
 import '../screen/admin/manage_articles_screen.dart';
 import '../screen/admin/add_video_screen.dart';
@@ -26,6 +27,7 @@ import '../screen/admin/add_article_screen.dart';
 import '../screen/admin/admin_notification_screen.dart';
 import '../screen/admin/admin_settings_screen.dart';
 import '../screen/admin_diagnostic_screen.dart';
+import '../screen/comments_screen.dart';
 
 /// Stream-based refresh notifier for GoRouter
 class AuthNotifier extends ChangeNotifier {
@@ -85,6 +87,19 @@ final appRouter = GoRouter(
         state: state,
         child: const CommunityFeedScreen(),
       ),
+      routes: [
+        GoRoute(
+          path: 'post/:postId/comments',
+          builder: (context, state) {
+            final postId = state.pathParameters['postId']!;
+            final postOwnerUserId = state.uri.queryParameters['ownerId'] ?? '';
+            return CommentsScreen(
+              postId: postId,
+              postOwnerUserId: postOwnerUserId,
+            );
+          },
+        ),
+      ],
     ),
     GoRoute(
       path: '/guides',
@@ -111,6 +126,12 @@ final appRouter = GoRouter(
       path: '/disposal-history',
       builder: (context, state) => const DisposalHistoryScreen(),
     ),
+    
+    // ✅ Maps screen for finding disposal locations
+    GoRoute(
+      path: '/maps',
+      builder: (context, state) => const MapsScreen(),
+    ),
 
     // ✅ Settings and sub-screens
     GoRoute(
@@ -133,7 +154,7 @@ final appRouter = GoRouter(
     // ✅ Notifications
     GoRoute(
       path: '/notifications',
-      builder: (context, state) => const NotificationScreen(),
+      builder: (context, state) => const NotificationsScreen(),
     ),
     
     // ✅ Connection Test

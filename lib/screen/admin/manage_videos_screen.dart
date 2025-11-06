@@ -299,8 +299,11 @@ class _ManageVideosScreenState extends State<ManageVideosScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: () {
-          // TODO: Navigate to edit screen
-          // context.push('/admin/videos/edit/$videoId');
+          // TODO: Create edit video screen and route: /admin/videos/edit/{videoId}
+          // Future: context.push('/admin/videos/edit/$videoId');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Video editing - Coming soon')),
+          );
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
@@ -419,8 +422,11 @@ class _ManageVideosScreenState extends State<ManageVideosScreen> {
                   if (value == 'delete') {
                     _deleteVideo(videoId, title);
                   } else if (value == 'edit') {
-                    // TODO: Navigate to edit
-                    // context.push('/admin/videos/edit/$videoId');
+                    // TODO: Create edit video screen and route: /admin/videos/edit/{videoId}
+                    // Future: context.push('/admin/videos/edit/$videoId');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Video editing - Coming soon')),
+                    );
                   }
                 },
               ),

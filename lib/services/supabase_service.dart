@@ -841,5 +841,454 @@ class SupabaseService {
       return null;
     }
   }
+
+  // ============================================
+  // STORAGE
+  // ============================================
+
+  /// Upload file to Supabase Storage
+  /// Returns the public URL of the uploaded file
+  Future<String?> uploadFile({
+    required String bucket,
+    required String path,
+    required dynamic file, // File or Uint8List
+  }) async {
+    try {
+      debugPrint('🔵 Uploading file to $bucket/$path');
+      
+      // Upload the file
+      await _client.storage.from(bucket).upload(
+        path,
+        file,
+        fileOptions: const FileOptions(
+          cacheControl: '3600',
+          upsert: false,
+        ),
+      );
+      
+      // Get the public URL
+      final publicUrl = _client.storage.from(bucket).getPublicUrl(path);
+      
+      debugPrint('✅ File uploaded successfully: $publicUrl');
+      return publicUrl;
+    } catch (e) {
+      debugPrint('❌ Failed to upload file: $e');
+      return null;
+    }
+  }
+
+  /// Delete file from Supabase Storage
+  Future<bool> deleteFile({
+    required String bucket,
+    required String path,
+  }) async {
+    try {
+      debugPrint('🔵 Deleting file from $bucket/$path');
+      
+      await _client.storage.from(bucket).remove([path]);
+      
+      debugPrint('✅ File deleted successfully');
+      return true;
+    } catch (e) {
+      debugPrint('❌ Failed to delete file: $e');
+      return false;
+    }
+  }
+
+  // ============================================
+  // COMMUNITY POSTS
+  // ============================================
+
+  /// Create a new community post
+  Future<String> createCommunityPost({
+    required String userId,
+    required String description,
+    required String itemType,
+    String? brandModel,
+    required int quantity,
+    required String dropOffLocation,
+    required String action, // 'disposed' or 'repurposed'
+    List<String>? photoUrls,
+  }) async {
+    try {
+      debugPrint('🔵 Creating community post for user: $userId');
+      
+      final response = await _client
+          .from('community_posts')
+          .insert({
+            'user_id': userId,
+            'description': description,
+            'item_type': itemType,
+            'brand_model': brandModel,
+            'quantity': quantity,
+            'drop_off_location': dropOffLocation,
+            'action': action,
+            'photo_urls': photoUrls ?? [],
+            'likes_count': 0,
+            'comments_count': 0,
+          })
+          .select()
+          .single();
+
+      debugPrint('✅ Community post created: ${response['id']}');
+      return response['id'];
+    } catch (e) {
+      debugPrint('❌ Failed to create community post: $e');
+      throw Exception('Failed to create community post: $e');
+    }
+  }
+
+  /// Get all community posts with user data
+  Future<List<Map<String, dynamic>>> getAllCommunityPosts({int limit = 50, String? currentFirebaseUserId}) async {
+    try {
+      debugPrint('🔵 Fetching community posts (limit: $limit)');
+      
+      // Get posts
+      final posts = await _client
+          .from('community_posts')
+          .select()
+          .order('created_at', ascending: false)
+          .limit(limit);
+
+      // Get unique user IDs
+      final userIds = posts.map((post) => post['user_id'] as String).toSet().toList();
+
+      // Fetch user profiles for all posts
+      final users = await _client
+          .from('user_profiles')
+          .select()
+          .inFilter('id', userIds);
+
+      // Create user map for quick lookup
+      final userMap = <String, Map<String, dynamic>>{};
+      for (var user in users) {
+        userMap[user['id']] = user;
+      }
+
+      // Get current user's likes if logged in (use Firebase user ID)
+      Set<String> likedPostIds = {};
+      final userId = currentFirebaseUserId ?? currentUserId;
+      if (userId != null) {
+        final likes = await _client
+            .from('post_likes')
+            .select('post_id')
+            .eq('user_id', userId);
+        
+        likedPostIds = likes.map((like) => like['post_id'] as String).toSet();
+      }
+
+      // Combine posts with user data
+      final postsWithUserData = posts.map((post) {
+        final userData = userMap[post['user_id']];
+        return {
+          ...post,
+          'user_data': userData,
+          'is_liked_by_current_user': likedPostIds.contains(post['id']),
+        };
+      }).toList();
+
+      debugPrint('✅ Fetched ${postsWithUserData.length} community posts');
+      return postsWithUserData;
+    } catch (e) {
+      debugPrint('❌ Failed to get community posts: $e');
+      throw Exception('Failed to get community posts: $e');
+    }
+  }
+
+  /// Get community posts by user
+  Future<List<Map<String, dynamic>>> getUserCommunityPosts(String userId) async {
+    try {
+      final posts = await _client
+          .from('community_posts')
+          .select()
+          .eq('user_id', userId)
+          .order('created_at', ascending: false);
+
+      // Get user profile
+      final userProfile = await getUserProfile(userId);
+
+      return posts.map((post) {
+        return {
+          ...post,
+          'user_data': userProfile?.toSupabaseJson(),
+        };
+      }).toList();
+    } catch (e) {
+      throw Exception('Failed to get user community posts: $e');
+    }
+  }
+
+  /// Stream of community posts
+  Stream<List<Map<String, dynamic>>> streamCommunityPosts() {
+    return _client
+        .from('community_posts')
+        .stream(primaryKey: ['id'])
+        .order('created_at', ascending: false)
+        .map((posts) {
+          // Note: Streaming doesn't include user data by default
+          // You'll need to fetch user data separately for each post
+          return posts;
+        });
+  }
+
+  /// Like a post
+  Future<void> likePost(String postId, String userId) async {
+    try {
+      debugPrint('🔵 Liking post: $postId');
+      
+      await _client
+          .from('post_likes')
+          .insert({
+            'post_id': postId,
+            'user_id': userId,
+          });
+
+      debugPrint('✅ Post liked successfully');
+    } catch (e) {
+      debugPrint('❌ Failed to like post: $e');
+      throw Exception('Failed to like post: $e');
+    }
+  }
+
+  /// Unlike a post
+  Future<void> unlikePost(String postId, String userId) async {
+    try {
+      debugPrint('🔵 Unliking post: $postId');
+      
+      await _client
+          .from('post_likes')
+          .delete()
+          .eq('post_id', postId)
+          .eq('user_id', userId);
+
+      debugPrint('✅ Post unliked successfully');
+    } catch (e) {
+      debugPrint('❌ Failed to unlike post: $e');
+      throw Exception('Failed to unlike post: $e');
+    }
+  }
+
+  /// Add comment to a post
+  Future<void> addComment({
+    required String postId,
+    required String userId,
+    required String comment,
+  }) async {
+    try {
+      await _client
+          .from('post_comments')
+          .insert({
+            'post_id': postId,
+            'user_id': userId,
+            'comment': comment,
+          });
+    } catch (e) {
+      throw Exception('Failed to add comment: $e');
+    }
+  }
+
+  /// Get comments for a post
+  Future<List<Map<String, dynamic>>> getPostComments(String postId) async {
+    try {
+      final comments = await _client
+          .from('post_comments')
+          .select()
+          .eq('post_id', postId)
+          .order('created_at', ascending: false);
+
+      // Get unique user IDs
+      final userIds = comments.map((comment) => comment['user_id'] as String).toSet().toList();
+
+      // Fetch user profiles
+      final users = await _client
+          .from('user_profiles')
+          .select()
+          .inFilter('id', userIds);
+
+      // Create user map
+      final userMap = <String, Map<String, dynamic>>{};
+      for (var user in users) {
+        userMap[user['id']] = user;
+      }
+
+      // Combine comments with user data
+      return comments.map((comment) {
+        return {
+          ...comment,
+          'user_data': userMap[comment['user_id']],
+        };
+      }).toList();
+    } catch (e) {
+      throw Exception('Failed to get post comments: $e');
+    }
+  }
+
+  /// Delete a post
+  Future<void> deletePost(String postId, String userId) async {
+    try {
+      await _client
+          .from('community_posts')
+          .delete()
+          .eq('id', postId)
+          .eq('user_id', userId);
+    } catch (e) {
+      throw Exception('Failed to delete post: $e');
+    }
+  }
+
+  // ============================================
+  // NOTIFICATIONS
+  // ============================================
+
+  /// Create a notification
+  Future<void> createNotification({
+    required String userId,
+    required String type,
+    required String title,
+    required String message,
+    String? actorId,
+    String? actorName,
+    String? actorProfileImage,
+    String? relatedPostId,
+    String? relatedCommentId,
+  }) async {
+    try {
+      await _client.from('notifications').insert({
+        'user_id': userId,
+        'type': type,
+        'title': title,
+        'message': message,
+        'actor_id': actorId,
+        'actor_name': actorName,
+        'actor_profile_image': actorProfileImage,
+        'related_post_id': relatedPostId,
+        'related_comment_id': relatedCommentId,
+        'is_read': false,
+      });
+      debugPrint('✅ Notification created for user: $userId');
+    } catch (e) {
+      debugPrint('❌ Failed to create notification: $e');
+    }
+  }
+
+  /// Get user notifications
+  Future<List<Map<String, dynamic>>> getUserNotifications(
+    String userId, {
+    int limit = 50,
+  }) async {
+    try {
+      final response = await _client
+          .from('notifications')
+          .select()
+          .eq('user_id', userId)
+          .order('created_at', ascending: false)
+          .limit(limit);
+
+      return List<Map<String, dynamic>>.from(response as List);
+    } catch (e) {
+      debugPrint('❌ Failed to get notifications: $e');
+      throw Exception('Failed to get notifications: $e');
+    }
+  }
+
+  /// Get unread notification count
+  Future<int> getUnreadNotificationCount(String userId) async {
+    try {
+      final response = await _client
+          .from('notifications')
+          .select()
+          .eq('user_id', userId)
+          .eq('is_read', false);
+
+      return (response as List).length;
+    } catch (e) {
+      debugPrint('❌ Failed to get unread count: $e');
+      return 0;
+    }
+  }
+
+  /// Mark notification as read
+  Future<void> markNotificationAsRead(String notificationId) async {
+    try {
+      await _client
+          .from('notifications')
+          .update({'is_read': true})
+          .eq('id', notificationId);
+    } catch (e) {
+      debugPrint('❌ Failed to mark notification as read: $e');
+    }
+  }
+
+  /// Mark all notifications as read
+  Future<void> markAllNotificationsAsRead(String userId) async {
+    try {
+      await _client
+          .from('notifications')
+          .update({'is_read': true})
+          .eq('user_id', userId)
+          .eq('is_read', false);
+      debugPrint('✅ All notifications marked as read');
+    } catch (e) {
+      debugPrint('❌ Failed to mark all as read: $e');
+    }
+  }
+
+  /// Delete notification
+  Future<void> deleteNotification(String notificationId) async {
+    try {
+      await _client
+          .from('notifications')
+          .delete()
+          .eq('id', notificationId);
+    } catch (e) {
+      debugPrint('❌ Failed to delete notification: $e');
+    }
+  }
+
+  /// Stream notifications
+  Stream<List<Map<String, dynamic>>> streamUserNotifications(String userId) {
+    return _client
+        .from('notifications')
+        .stream(primaryKey: ['id'])
+        .eq('user_id', userId)
+        .order('created_at', ascending: false);
+  }
+
+  // ============================================
+  // USER POSTS & TRACKING
+  // ============================================
+
+  /// Get current user's posts with tracking status
+  Future<List<Map<String, dynamic>>> getUserPosts(String userId) async {
+    try {
+      debugPrint('🔵 SupabaseService: Fetching posts for user: $userId');
+      
+      final response = await _client
+          .from('community_posts')
+          .select()
+          .eq('user_id', userId)
+          .order('created_at', ascending: false);
+
+      debugPrint('✅ Fetched ${(response as List).length} user posts');
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      debugPrint('❌ Failed to fetch user posts: $e');
+      return [];
+    }
+  }
+
+  /// Update post tracking status
+  Future<void> updatePostStatus(String postId, String status) async {
+    try {
+      await _client
+          .from('community_posts')
+          .update({'tracking_status': status})
+          .eq('id', postId);
+      debugPrint('✅ Post status updated to: $status');
+    } catch (e) {
+      debugPrint('❌ Failed to update post status: $e');
+      throw Exception('Failed to update status');
+    }
+  }
 }
 

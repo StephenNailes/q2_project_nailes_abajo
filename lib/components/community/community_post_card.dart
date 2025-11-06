@@ -1,30 +1,21 @@
 import 'package:flutter/material.dart';
+import '../../models/community_post_model.dart';
 
 class CommunityPostCard extends StatelessWidget {
-  final Map<String, dynamic> post;
+  final CommunityPostModel post;
   final VoidCallback onLike;
   final VoidCallback onComment;
+  final VoidCallback? onDelete;
+  final bool isOwnPost;
 
   const CommunityPostCard({
     super.key,
     required this.post,
     required this.onLike,
     required this.onComment,
+    this.onDelete,
+    this.isOwnPost = false,
   });
-
-  String _getTimeAgo(DateTime timestamp) {
-    final difference = DateTime.now().difference(timestamp);
-    
-    if (difference.inDays > 0) {
-      return '${difference.inDays}d ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours}h ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m ago';
-    } else {
-      return 'Just now';
-    }
-  }
 
   void _showPostOptions(BuildContext context) {
     showModalBottomSheet(
@@ -38,50 +29,56 @@ class CommunityPostCard extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ListTile(
-                leading: const Icon(Icons.bookmark_outline, color: Colors.black87),
-                title: const Text('Save post'),
-                onTap: () {
-                  Navigator.pop(context);
-                  // TODO: Implement save post functionality
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Post saved!')),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.flag_outlined, color: Colors.black87),
-                title: const Text('Report post'),
-                onTap: () {
-                  Navigator.pop(context);
-                  // TODO: Implement report functionality
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Post reported. Thank you for helping keep our community safe.')),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.person_add_outlined, color: Colors.black87),
-                title: const Text('Follow user'),
-                onTap: () {
-                  Navigator.pop(context);
-                  // TODO: Implement follow user functionality
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Following ${post['userName']}')),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.link, color: Colors.black87),
-                title: const Text('Copy link'),
-                onTap: () {
-                  Navigator.pop(context);
-                  // TODO: Implement copy link functionality
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Link copied to clipboard')),
-                  );
-                },
-              ),
+              // Show delete option only for own posts
+              if (isOwnPost && onDelete != null) ...[
+                ListTile(
+                  leading: const Icon(Icons.delete_outline, color: Colors.red),
+                  title: const Text('Delete post', style: TextStyle(color: Colors.red)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _confirmDelete(context);
+                  },
+                ),
+                const Divider(),
+              ],
+              if (!isOwnPost) ...[
+                ListTile(
+                  leading: const Icon(Icons.bookmark_outline, color: Colors.black87),
+                  title: const Text('Save post'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    // TODO: Add to saved_posts table in Supabase when implemented
+                    // Future: await supabaseService.savePost(post.id, currentUserId);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Post saved!')),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.flag_outlined, color: Colors.black87),
+                  title: const Text('Report post'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    // TODO: Add to post_reports table in Supabase when implemented
+                    // Future: await supabaseService.reportPost(post.id, currentUserId, reason);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Post reported. Thank you for helping keep our community safe.')),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.person_add_outlined, color: Colors.black87),
+                  title: const Text('Follow user'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    // TODO: Add to user_follows table in Supabase when implemented
+                    // Future: await supabaseService.followUser(currentUserId, post.userId);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Following ${post.userName}')),
+                    );
+                  },
+                ),
+              ],
               const Divider(),
               ListTile(
                 leading: const Icon(Icons.cancel_outlined, color: Colors.grey),
@@ -90,6 +87,50 @@ class CommunityPostCard extends StatelessWidget {
               ),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  void _confirmDelete(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Row(
+            children: [
+              Icon(Icons.delete_outline, color: Colors.red, size: 28),
+              SizedBox(width: 12),
+              Text('Delete Post?'),
+            ],
+          ),
+          content: const Text(
+            'Are you sure you want to delete this post? This action cannot be undone.',
+            style: TextStyle(fontSize: 15),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.w600),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                onDelete?.call();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.w600)),
+            ),
+          ],
         );
       },
     );
@@ -119,7 +160,9 @@ class CommunityPostCard extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 20,
-                  backgroundImage: AssetImage(post['userAvatar']),
+                  backgroundImage: post.userProfileImage != null
+                      ? NetworkImage(post.userProfileImage!)
+                      : const AssetImage('lib/assets/images/kert.jpg') as ImageProvider,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -127,7 +170,7 @@ class CommunityPostCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        post['userName'],
+                        post.userName,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
@@ -138,7 +181,7 @@ class CommunityPostCard extends StatelessWidget {
                       Row(
                         children: [
                           Text(
-                            _getTimeAgo(post['timestamp']),
+                            post.timeAgo,
                             style: TextStyle(
                               color: Colors.grey[600],
                               fontSize: 12,
@@ -173,20 +216,20 @@ class CommunityPostCard extends StatelessWidget {
               children: [
                 _buildInfoChip(
                   icon: Icons.devices_outlined,
-                  label: '${post['itemType']} - ${post['itemBrand']}',
+                  label: '${post.itemType}${post.brandModel != null ? ' - ${post.brandModel}' : ''}',
                   color: const Color(0xFF2ECC71),
                 ),
                 _buildInfoChip(
                   icon: Icons.numbers,
-                  label: 'Qty: ${post['quantity']}',
+                  label: 'Qty: ${post.quantity}',
                   color: Colors.blue,
                 ),
                 _buildInfoChip(
-                  icon: post['action'] == 'Disposed' 
+                  icon: post.action == 'disposed' 
                       ? Icons.delete_outline 
                       : Icons.recycling_outlined,
-                  label: post['action'],
-                  color: post['action'] == 'Disposed' 
+                  label: post.actionDisplay,
+                  color: post.action == 'disposed' 
                       ? Colors.orange 
                       : Colors.green,
                 ),
@@ -195,11 +238,11 @@ class CommunityPostCard extends StatelessWidget {
           ),
 
           // Description
-          if (post['description'] != null && post['description'].isNotEmpty)
+          if (post.description.isNotEmpty)
             Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                post['description'],
+                post.description,
                 style: const TextStyle(
                   fontSize: 14,
                   height: 1.5,
@@ -209,14 +252,22 @@ class CommunityPostCard extends StatelessWidget {
             ),
 
           // Images
-          if (post['images'] != null && post['images'].isNotEmpty)
+          if (post.photoUrls.isNotEmpty)
             ClipRRect(
               borderRadius: BorderRadius.circular(0),
-              child: Image.asset(
-                post['images'][0],
+              child: Image.network(
+                post.photoUrls[0],
                 width: double.infinity,
                 height: 300,
                 fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  width: double.infinity,
+                  height: 300,
+                  color: Colors.grey[300],
+                  child: const Center(
+                    child: Icon(Icons.image_not_supported, size: 50, color: Colors.grey),
+                  ),
+                ),
               ),
             ),
 
@@ -250,7 +301,7 @@ class CommunityPostCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        post['location'],
+                        post.dropOffLocation,
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
@@ -258,7 +309,7 @@ class CommunityPostCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        post['locationAddress'],
+                        'Drop-off location',
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey[600],
@@ -281,7 +332,7 @@ class CommunityPostCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
-                if (post['likes'] > 0) ...[
+                if (post.likesCount > 0) ...[
                   Container(
                     padding: const EdgeInsets.all(4),
                     decoration: const BoxDecoration(
@@ -296,7 +347,7 @@ class CommunityPostCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    '${post['likes']}',
+                    '${post.likesCount}',
                     style: TextStyle(
                       color: Colors.grey[700],
                       fontSize: 13,
@@ -304,9 +355,9 @@ class CommunityPostCard extends StatelessWidget {
                   ),
                 ],
                 const Spacer(),
-                if (post['comments'] > 0)
+                if (post.commentsCount > 0)
                   Text(
-                    '${post['comments']} comments',
+                    '${post.commentsCount} comments',
                     style: TextStyle(
                       color: Colors.grey[600],
                       fontSize: 13,
@@ -322,12 +373,12 @@ class CommunityPostCard extends StatelessWidget {
             child: Row(
               children: [
                 _buildActionButton(
-                  icon: post['isLiked'] 
+                  icon: post.isLikedByCurrentUser 
                       ? Icons.thumb_up 
                       : Icons.thumb_up_outlined,
                   label: 'Like',
                   onTap: onLike,
-                  isActive: post['isLiked'],
+                  isActive: post.isLikedByCurrentUser,
                 ),
                 _buildActionButton(
                   icon: Icons.comment_outlined,

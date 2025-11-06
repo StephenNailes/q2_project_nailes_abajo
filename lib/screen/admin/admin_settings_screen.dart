@@ -157,7 +157,8 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
               title: 'Admin Profile',
               subtitle: 'Update admin information',
               onTap: () {
-                // TODO: Navigate to admin profile edit
+                // TODO: Create route: /admin/settings/edit-profile
+                // Future: context.push('/admin/settings/edit-profile');
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Admin profile editing - Coming soon')),
                 );
@@ -170,7 +171,8 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
               title: 'Change Password',
               subtitle: 'Update admin password',
               onTap: () {
-                // TODO: Create admin-specific password change screen
+                // TODO: Create route: /admin/settings/change-password
+                // Future: context.push('/admin/settings/change-password');
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Admin password change - Coming soon')),
                 );
@@ -183,7 +185,8 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
               title: 'Manage Email',
               subtitle: 'Update admin email address',
               onTap: () {
-                // TODO: Create admin-specific email management screen
+                // TODO: Create route: /admin/settings/manage-email
+                // Future: context.push('/admin/settings/manage-email');
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Admin email management - Coming soon')),
                 );

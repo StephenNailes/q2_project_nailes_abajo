@@ -32,6 +32,9 @@ dependencies:
   shared_preferences: ^2.3.3
   flutter_dotenv: ^5.2.1          # Environment variables
   http: ^1.2.0                    # HTTP requests (YouTube API)
+  google_maps_flutter: ^2.9.0     # Google Maps integration
+  geolocator: ^13.0.2             # Location services
+  permission_handler: ^11.3.1     # Runtime permissions
   
   # Learning content packages
   youtube_player_flutter: ^9.0.3  # YouTube video player

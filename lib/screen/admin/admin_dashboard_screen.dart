@@ -95,8 +95,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         setState(() {
           _totalVideos = videos.length;
           _totalArticles = articles.length;
-          _totalUsers = 0; // TODO: Add user count query
-          _totalSubmissions = 0; // TODO: Add submissions count query
+          _totalUsers = 0; // TODO: Query users table: SELECT COUNT(*) FROM users
+          _totalSubmissions = 0; // TODO: Query community_posts: SELECT COUNT(*) FROM community_posts
         });
       }
     } catch (e) {

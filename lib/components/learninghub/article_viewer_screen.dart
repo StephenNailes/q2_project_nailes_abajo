@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -78,13 +79,20 @@ class _ArticleViewerScreenState extends State<ArticleViewerScreen> {
             ),
             IconButton(
               icon: const Icon(Icons.share, color: Colors.black87),
-              onPressed: () {
-                // TODO: Implement share functionality
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Share feature coming soon!'),
-                  ),
-                );
+              onPressed: () async {
+                // TODO: Use share_plus package for native sharing
+                // Future: await Share.share('Check out this article: ${widget.article.title}');
+                await Clipboard.setData(ClipboardData(
+                  text: 'TechSustain Article: ${widget.article.title}',
+                ));
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Article title copied to clipboard'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
               },
             ),
           ],
