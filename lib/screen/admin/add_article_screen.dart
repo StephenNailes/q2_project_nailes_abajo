@@ -56,7 +56,7 @@ class _AddArticleScreenState extends State<AddArticleScreen> {
         heroImageUrl: _heroImageController.text.trim().isEmpty 
             ? null 
             : _heroImageController.text.trim(),
-        category: _selectedCategory,
+        category: _selectedCategory.toLowerCase(), // Convert to lowercase for database
         author: _authorController.text.trim(),
         isFeatured: _isFeatured,
       );

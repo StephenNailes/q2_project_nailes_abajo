@@ -46,10 +46,27 @@ class _EditVideoScreenState extends State<EditVideoScreen> {
   void initState() {
     super.initState();
     _loadVideoData();
+    
+    // Listen to URL changes to auto-update thumbnail
+    _urlController.addListener(_onUrlChanged);
+  }
+  
+  void _onUrlChanged() {
+    // Auto-update thumbnail when URL changes
+    final videoId = YouTubeService.extractVideoId(_urlController.text);
+    if (videoId != null && videoId.isNotEmpty) {
+      final newThumbnail = 'https://img.youtube.com/vi/$videoId/maxresdefault.jpg';
+      if (_thumbnailController.text != newThumbnail) {
+        setState(() {
+          _thumbnailController.text = newThumbnail;
+        });
+      }
+    }
   }
 
   @override
   void dispose() {
+    _urlController.removeListener(_onUrlChanged);
     _urlController.dispose();
     _titleController.dispose();
     _descriptionController.dispose();
@@ -173,6 +190,9 @@ class _EditVideoScreenState extends State<EditVideoScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final videoId = YouTubeService.extractVideoId(_urlController.text);
+    debugPrint('📹 Extracted video ID from URL: $videoId');
+    debugPrint('📹 Original URL: ${_urlController.text}');
+    
     if (videoId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Invalid YouTube URL')),
@@ -183,16 +203,37 @@ class _EditVideoScreenState extends State<EditVideoScreen> {
     setState(() => _isSaving = true);
 
     try {
-      await _supabaseService.updateVideo(widget.videoId, {
+      final updateData = {
         'youtube_video_id': videoId,
         'title': _titleController.text,
         'description': _descriptionController.text,
         'author': _authorController.text,
-        'category': _selectedCategory,
+        'category': _selectedCategory.toLowerCase(), // Convert to lowercase for database
         'duration': _duration,
         'thumbnail_url': _thumbnailController.text,
         'is_featured': _isFeatured,
-      });
+      };
+      
+      debugPrint('📹 Updating video ${widget.videoId} with data: $updateData');
+      
+      await _supabaseService.updateVideo(widget.videoId, updateData);
+      
+      debugPrint('✅ Video update completed, verifying...');
+      
+      // Verify the update by reloading the video
+      final videos = await _supabaseService.getAllVideos();
+      final updatedVideo = videos.firstWhere(
+        (v) => v['id'] == widget.videoId,
+        orElse: () => <String, dynamic>{},
+      );
+      
+      if (updatedVideo.isNotEmpty) {
+        final savedVideoId = updatedVideo['youtube_video_id'];
+        debugPrint('✅ Verified: Video now has youtube_video_id: $savedVideoId');
+        if (savedVideoId != videoId) {
+          debugPrint('⚠️ WARNING: Saved video ID ($savedVideoId) does not match expected ($videoId)');
+        }
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -404,6 +445,66 @@ class _EditVideoScreenState extends State<EditVideoScreen> {
                 ),
               ),
               const SizedBox(height: 16),
+
+              // Thumbnail Preview
+              if (_thumbnailController.text.isNotEmpty) ...[
+                const Text(
+                  'Thumbnail Preview:',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    _thumbnailController.text,
+                    height: 200,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        height: 200,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.broken_image, size: 48, color: Colors.grey),
+                              SizedBox(height: 8),
+                              Text(
+                                'Failed to load thumbnail',
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        height: 200,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2ECC71)),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
 
               // Featured toggle
               Container(

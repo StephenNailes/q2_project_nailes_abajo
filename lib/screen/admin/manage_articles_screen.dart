@@ -107,22 +107,33 @@ class _ManageArticlesScreenState extends State<ManageArticlesScreen> {
 
     if (confirmed == true) {
       try {
+        debugPrint('🗑️ Attempting to delete article: $id');
         await _supabaseService.deleteArticle(id);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Article deleted successfully'),
-              backgroundColor: Color(0xFF2ECC71),
-            ),
-          );
-          _loadArticles();
-        }
-      } catch (e) {
+        debugPrint('✅ Article deleted successfully');
+        
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error: ${e.toString()}'),
+              content: Text('✅ "$title" deleted successfully'),
+              backgroundColor: const Color(0xFF2ECC71),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+          await _loadArticles();
+        }
+      } catch (e) {
+        debugPrint('❌ Error deleting article: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to delete article: ${e.toString()}'),
               backgroundColor: Colors.red,
+              duration: const Duration(seconds: 4),
+              action: SnackBarAction(
+                label: 'Retry',
+                textColor: Colors.white,
+                onPressed: () => _deleteArticle(id, title),
+              ),
             ),
           );
         }

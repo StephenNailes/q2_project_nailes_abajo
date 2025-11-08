@@ -112,7 +112,7 @@ class _AddVideoScreenState extends State<AddVideoScreen> {
         thumbnailUrl: _thumbnailController.text.trim().isEmpty 
             ? null 
             : _thumbnailController.text.trim(),
-        category: _selectedCategory,
+        category: _selectedCategory.toLowerCase(), // Convert to lowercase for database
         duration: _duration,
         author: _authorController.text.trim(),
         isFeatured: _isFeatured,

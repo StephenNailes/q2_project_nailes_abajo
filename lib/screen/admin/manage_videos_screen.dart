@@ -108,22 +108,33 @@ class _ManageVideosScreenState extends State<ManageVideosScreen> {
 
     if (confirmed == true) {
       try {
+        debugPrint('🗑️ Attempting to delete video: $id');
         await _supabaseService.deleteVideo(id);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Video deleted successfully'),
-              backgroundColor: Color(0xFF2ECC71),
-            ),
-          );
-          _loadVideos();
-        }
-      } catch (e) {
+        debugPrint('✅ Video deleted successfully');
+        
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error: ${e.toString()}'),
+              content: Text('✅ "$title" deleted successfully'),
+              backgroundColor: const Color(0xFF2ECC71),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+          await _loadVideos();
+        }
+      } catch (e) {
+        debugPrint('❌ Error deleting video: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to delete video: ${e.toString()}'),
               backgroundColor: Colors.red,
+              duration: const Duration(seconds: 4),
+              action: SnackBarAction(
+                label: 'Retry',
+                textColor: Colors.white,
+                onPressed: () => _deleteVideo(id, title),
+              ),
             ),
           );
         }

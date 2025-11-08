@@ -123,7 +123,7 @@ class _EditArticleScreenState extends State<EditArticleScreen> {
         'content': _contentController.text,
         'author': _authorController.text,
         'hero_image_url': _heroImageController.text,
-        'category': _selectedCategory,
+        'category': _selectedCategory.toLowerCase(), // Convert to lowercase for database
         'is_featured': _isFeatured,
       });
 

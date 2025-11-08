@@ -70,7 +70,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           elevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () => context.pop(),
+            onPressed: () => context.go('/profile'),
           ),
           title: const Text(
             "Settings",

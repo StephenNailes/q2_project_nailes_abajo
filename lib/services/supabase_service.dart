@@ -606,11 +606,18 @@ class SupabaseService {
   /// Update video (admin only)
   Future<void> updateVideo(String id, Map<String, dynamic> updates) async {
     try {
-      await _client
+      debugPrint('📝 SupabaseService: Updating video with ID: $id');
+      debugPrint('📝 Update data: $updates');
+      
+      final response = await _client
           .from('videos')
           .update(updates)
-          .eq('id', id);
+          .eq('id', id)
+          .select();
+      
+      debugPrint('✅ SupabaseService: Video updated successfully. Response: $response');
     } catch (e) {
+      debugPrint('❌ SupabaseService: Failed to update video: $e');
       throw Exception('Failed to update video: $e');
     }
   }
@@ -618,11 +625,17 @@ class SupabaseService {
   /// Delete video (admin only)
   Future<void> deleteVideo(String id) async {
     try {
-      await _client
+      debugPrint('🗑️ SupabaseService: Deleting video with ID: $id');
+      
+      final response = await _client
           .from('videos')
           .delete()
-          .eq('id', id);
+          .eq('id', id)
+          .select();
+      
+      debugPrint('✅ SupabaseService: Video deleted successfully. Response: $response');
     } catch (e) {
+      debugPrint('❌ SupabaseService: Failed to delete video: $e');
       throw Exception('Failed to delete video: $e');
     }
   }
@@ -774,11 +787,17 @@ class SupabaseService {
   /// Delete article (admin only)
   Future<void> deleteArticle(String id) async {
     try {
-      await _client
+      debugPrint('🗑️ SupabaseService: Deleting article with ID: $id');
+      
+      final response = await _client
           .from('articles')
           .delete()
-          .eq('id', id);
+          .eq('id', id)
+          .select();
+      
+      debugPrint('✅ SupabaseService: Article deleted successfully. Response: $response');
     } catch (e) {
+      debugPrint('❌ SupabaseService: Failed to delete article: $e');
       throw Exception('Failed to delete article: $e');
     }
   }
