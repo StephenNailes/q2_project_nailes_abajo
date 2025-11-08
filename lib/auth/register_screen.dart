@@ -51,6 +51,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     try {
+      debugPrint('🔵 Starting Registration...');
       // Register with Firebase Auth
       final userCredential = await _authService.registerWithEmail(
         email: _emailController.text.trim(),
@@ -58,8 +59,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
         name: _nameController.text.trim(),
       );
       
+      if (userCredential == null || userCredential.user == null) {
+        debugPrint('❌ Registration failed - no user credential');
+        if (mounted) {
+          setState(() {
+            _errorMessage = 'Registration failed. Please try again.';
+            _isLoading = false;
+          });
+        }
+        return;
+      }
+
+      debugPrint('✅ Firebase registration successful: ${userCredential.user!.email}');
+      
       // Create user profile in Supabase
-      if (userCredential != null && userCredential.user != null) {
+      try {
+        debugPrint('🔵 Creating Supabase profile...');
         final userModel = UserModel(
           id: userCredential.user!.uid,
           name: _nameController.text.trim(),
@@ -69,7 +84,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
           updatedAt: DateTime.now(),
         );
         
+        debugPrint('   Model created with ID: ${userModel.id}');
         await _supabaseService.createOrUpdateUserProfile(userModel);
+        debugPrint('✅ Supabase profile created successfully');
+      } catch (supabaseError) {
+        // Log error but don't block navigation - profile can be created later
+        debugPrint('⚠️ Supabase profile creation failed: $supabaseError');
       }
       
       if (mounted) {
@@ -82,12 +102,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
         // Don't manually navigate - let GoRouter's redirect handle it
         // The authStateChanges listener will automatically redirect to /home
+        debugPrint('✅ Registration complete, waiting for auto-redirect to /home');
       }
     } catch (e) {
-      setState(() {
-        _errorMessage = _getErrorMessage(e.toString());
-        _isLoading = false;
-      });
+      debugPrint('❌ Registration error: $e');
+      if (mounted) {
+        setState(() {
+          _errorMessage = _getErrorMessage(e.toString());
+          _isLoading = false;
+        });
+      }
     }
   }
 

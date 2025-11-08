@@ -6,7 +6,18 @@ import 'stepper_header.dart';
 import 'step5_submit.dart';
 
 class Step4Photo extends StatefulWidget {
-  const Step4Photo({super.key});
+  final String itemType;
+  final String action;
+  final int quantity;
+  final String location;
+  
+  const Step4Photo({
+    super.key,
+    required this.itemType,
+    required this.action,
+    required this.quantity,
+    required this.location,
+  });
 
   @override
   State<Step4Photo> createState() => _Step4PhotoState();
@@ -93,62 +104,105 @@ class _Step4PhotoState extends State<Step4Photo> {
               style: TextStyle(color: Color(0xFF8F9BB3), fontSize: 15),
             ),
             const SizedBox(height: 28),
-            GestureDetector(
-              onTap: _pickImage,
-              child: Container(
-                width: double.infinity,
-                height: 200,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(
-                    color: _imageFile == null
-                        ? const Color(0xFFE3E6ED)
-                        : const Color(0xFF2ECC71),
-                    width: 2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 12,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: _imageFile == null
-                    ? Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            child: Icon(Icons.camera_alt_outlined,
-                                color: const Color(0xFF2ECC71), size: 48),
-                          ),
-                          const SizedBox(height: 14),
-                          const Text(
-                            "Tap to upload or take a photo",
-                            style: TextStyle(
-                                color: Color(0xFF8F9BB3),
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500),
-                          ),
-                          const SizedBox(height: 6),
-                          const Text(
-                            "JPG, PNG up to 10MB",
-                            style: TextStyle(
-                                color: Color(0xFFBFC8D6), fontSize: 13),
+            Center(
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  GestureDetector(
+                    onTap: _pickImage,
+                    child: Container(
+                      width: double.infinity,
+                      height: 240,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: _imageFile == null
+                              ? const Color(0xFFE3E6ED)
+                              : const Color(0xFF2ECC71),
+                          width: 2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.04),
+                            blurRadius: 12,
+                            offset: const Offset(0, 2),
                           ),
                         ],
-                      )
-                    : ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Image.file(
-                          _imageFile!,
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                          height: 200,
+                      ),
+                      child: _imageFile == null
+                          ? Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                AnimatedContainer(
+                                  duration: const Duration(milliseconds: 300),
+                                  child: Icon(Icons.camera_alt_outlined,
+                                      color: const Color(0xFF2ECC71), size: 48),
+                                ),
+                                const SizedBox(height: 14),
+                                const Text(
+                                  "Tap to upload or take a photo",
+                                  style: TextStyle(
+                                      color: Color(0xFF8F9BB3),
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500),
+                                ),
+                                const SizedBox(height: 6),
+                                const Text(
+                                  "JPG, PNG up to 10MB",
+                                  style: TextStyle(
+                                      color: Color(0xFFBFC8D6), fontSize: 13),
+                                ),
+                              ],
+                            )
+                          : Center(
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: Image.file(
+                                  _imageFile!,
+                                  fit: BoxFit.contain,
+                                  alignment: Alignment.center,
+                                  width: double.infinity,
+                                  height: 240,
+                                ),
+                              ),
+                            ),
+                    ),
+                  ),
+                  // Remove image button (red X)
+                  if (_imageFile != null)
+                    Positioned(
+                      top: -8,
+                      right: -8,
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _imageFile = null;
+                          });
+                        },
+                        child: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.2),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.close,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                         ),
                       ),
+                    ),
+                ],
               ),
             ),
             const SizedBox(height: 22),
@@ -202,7 +256,13 @@ class _Step4PhotoState extends State<Step4Photo> {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (_) => const Step5Review()));
+                              builder: (_) => Step5Review(
+                                itemType: widget.itemType,
+                                action: widget.action,
+                                quantity: widget.quantity,
+                                location: widget.location,
+                                imageFile: null, // Skip photo
+                              )));
                     },
                     style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -219,7 +279,13 @@ class _Step4PhotoState extends State<Step4Photo> {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (_) => const Step5Review()));
+                              builder: (_) => Step5Review(
+                                itemType: widget.itemType,
+                                action: widget.action,
+                                quantity: widget.quantity,
+                                location: widget.location,
+                                imageFile: _imageFile,
+                              )));
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF2ECC71),

@@ -88,15 +88,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   Future<void> _loadDashboardData() async {
     try {
-      final videos = await _supabaseService.getAllVideos();
-      final articles = await _supabaseService.getAllArticles();
+      final stats = await _supabaseService.getAdminStats();
       
       if (mounted) {
         setState(() {
-          _totalVideos = videos.length;
-          _totalArticles = articles.length;
-          _totalUsers = 0; // TODO: Query users table: SELECT COUNT(*) FROM users
-          _totalSubmissions = 0; // TODO: Query community_posts: SELECT COUNT(*) FROM community_posts
+          _totalVideos = stats['videos'] ?? 0;
+          _totalArticles = stats['articles'] ?? 0;
+          _totalUsers = stats['users'] ?? 0;
+          _totalSubmissions = stats['submissions'] ?? 0;
         });
       }
     } catch (e) {

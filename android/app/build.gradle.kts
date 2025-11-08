@@ -9,10 +9,13 @@ plugins {
 }
 
 // Load API keys from local.properties (not tracked in git)
-val localProperties = java.util.Properties()
+import java.util.Properties
+import java.io.FileInputStream
+
+val localProperties = Properties()
 val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
-    localPropertiesFile.inputStream().use { localProperties.load(it) }
+    localProperties.load(FileInputStream(localPropertiesFile))
 }
 
 val googleMapsApiKey: String = localProperties.getProperty("GOOGLE_MAPS_API_KEY") ?: System.getenv("GOOGLE_MAPS_API_KEY") ?: ""

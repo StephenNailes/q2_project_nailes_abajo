@@ -17,33 +17,86 @@ class SubmissionScreen extends StatefulWidget {
 
 class _SubmissionScreenState extends State<SubmissionScreen> {
   final TextEditingController _postController = TextEditingController();
-  final TextEditingController _itemTypeController = TextEditingController();
   final TextEditingController _brandController = TextEditingController();
   final ImagePicker _imagePicker = ImagePicker();
   final List<File> _selectedImages = [];
   String _selectedAction = 'Disposed';
   int _quantity = 1;
+  String? _selectedItemType;
   String? _selectedLocation;
+  
+  // Item types matching Step1Select and Community Feed filters
+  final List<Map<String, dynamic>> _itemTypes = [
+    {
+      'name': 'Smartphone',
+      'icon': Icons.smartphone,
+      'description': 'Mobile phones and smartphones',
+    },
+    {
+      'name': 'Laptop',
+      'icon': Icons.laptop_mac,
+      'description': 'Laptops and notebooks',
+    },
+    {
+      'name': 'Charger',
+      'icon': Icons.battery_charging_full,
+      'description': 'Phone chargers, cables, adapters',
+    },
+    {
+      'name': 'Tablet',
+      'icon': Icons.tablet,
+      'description': 'Tablets and iPads',
+    },
+    {
+      'name': 'Headphones',
+      'icon': Icons.headphones,
+      'description': 'Headphones, earbuds, speakers',
+    },
+  ];
   
   // User profile data
   String _userName = 'Loading...';
   String? _userProfileImage;
   
   // Available disposal locations from maps
-  final List<Map<String, String>> _disposalLocations = [
+  final List<Map<String, dynamic>> _allDisposalLocations = [
     {
       'name': 'SM City Davao E-Waste Collection',
       'address': 'Ecoland Drive, Matina, Davao City',
+      'services': ['Disposed'],
     },
     {
       'name': 'Davao Tech Refurbish Hub',
       'address': 'Poblacion District, Davao City',
+      'services': ['Repurposed'],
     },
     {
       'name': 'Gaisano Mall Disposal Point',
       'address': 'J.P. Laurel Ave, Bajada, Davao City',
+      'services': ['Disposed'],
+    },
+    {
+      'name': 'EcoCenter Repair Shop',
+      'address': 'Torres St, Davao City',
+      'services': ['Repurposed'],
+    },
+    {
+      'name': 'City Hall E-Waste Drop-off',
+      'address': 'City Hall Complex, Davao City',
+      'services': ['Disposed'],
+    },
+    {
+      'name': 'GreenTech Refurbishing Center',
+      'address': 'Tech Park Ave, Davao City',
+      'services': ['Repurposed'],
     },
   ];
+
+  List<Map<String, dynamic>> get _disposalLocations {
+    return _allDisposalLocations
+        .where((location) => (location['services'] as List).contains(_selectedAction))
+        .toList();
+  }
 
   @override
   void initState() {
@@ -54,7 +107,6 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
   @override
   void dispose() {
     _postController.dispose();
-    _itemTypeController.dispose();
     _brandController.dispose();
     super.dispose();
   }
@@ -131,10 +183,10 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
       return;
     }
     
-    if (_itemTypeController.text.isEmpty) {
+    if (_selectedItemType == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please enter the item type'),
+          content: Text('Please select the item type'),
           backgroundColor: Colors.red,
         ),
       );
@@ -194,7 +246,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
       await supabaseService.createCommunityPost(
         userId: userId,
         description: _postController.text.trim(),
-        itemType: _itemTypeController.text.trim(),
+        itemType: _selectedItemType!,
         brandModel: _brandController.text.trim().isEmpty ? null : _brandController.text.trim(),
         quantity: _quantity,
         dropOffLocation: _selectedLocation!,
@@ -443,9 +495,9 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Item Type
-                    TextField(
-                      controller: _itemTypeController,
+                    // Item Type Dropdown
+                    DropdownButtonFormField<String>(
+                      value: _selectedItemType,
                       decoration: InputDecoration(
                         labelText: 'Item Type',
                         labelStyle: TextStyle(
@@ -453,7 +505,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
-                        hintText: 'e.g., Smartphone, Laptop, Charger',
+                        hintText: 'Select item type',
                         hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
                         prefixIcon: Container(
                           margin: const EdgeInsets.all(12),
@@ -462,7 +514,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                             color: const Color(0xFF2ECC71).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Icon(Icons.devices, color: Color(0xFF2ECC71), size: 20),
+                          child: const Icon(Icons.category, color: Color(0xFF2ECC71), size: 20),
                         ),
                         filled: true,
                         fillColor: Colors.grey[50],
@@ -478,7 +530,79 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                           borderRadius: BorderRadius.circular(14),
                           borderSide: const BorderSide(color: Color(0xFF2ECC71), width: 2),
                         ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                       ),
+                      icon: Icon(Icons.arrow_drop_down, color: Colors.grey[600]),
+                      isExpanded: true,
+                      items: _itemTypes.map((itemType) {
+                        return DropdownMenuItem<String>(
+                          value: itemType['name'],
+                          child: Row(
+                            children: [
+                              Icon(
+                                itemType['icon'] as IconData,
+                                color: const Color(0xFF2ECC71),
+                                size: 20,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      itemType['name'],
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      itemType['description'],
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.grey[600],
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _selectedItemType = newValue;
+                        });
+                      },
+                      selectedItemBuilder: (BuildContext context) {
+                        return _itemTypes.map((itemType) {
+                          return Row(
+                            children: [
+                              Icon(
+                                itemType['icon'] as IconData,
+                                color: const Color(0xFF2ECC71),
+                                size: 20,
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                itemType['name'],
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ],
+                          );
+                        }).toList();
+                      },
+                      dropdownColor: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
                     ),
                     const SizedBox(height: 14),
 
@@ -527,7 +651,17 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                         Expanded(
                           child: InkWell(
                             onTap: () {
-                              setState(() => _selectedAction = 'Disposed');
+                              setState(() {
+                                _selectedAction = 'Disposed';
+                                // Reset location if it doesn't support new action
+                                if (_selectedLocation != null) {
+                                  final currentLocationStillValid = _disposalLocations
+                                      .any((loc) => loc['name'] == _selectedLocation);
+                                  if (!currentLocationStillValid) {
+                                    _selectedLocation = null;
+                                  }
+                                }
+                              });
                             },
                             borderRadius: BorderRadius.circular(14),
                             child: AnimatedContainer(
@@ -587,7 +721,17 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                         Expanded(
                           child: InkWell(
                             onTap: () {
-                              setState(() => _selectedAction = 'Repurposed');
+                              setState(() {
+                                _selectedAction = 'Repurposed';
+                                // Reset location if it doesn't support new action
+                                if (_selectedLocation != null) {
+                                  final currentLocationStillValid = _disposalLocations
+                                      .any((loc) => loc['name'] == _selectedLocation);
+                                  if (!currentLocationStillValid) {
+                                    _selectedLocation = null;
+                                  }
+                                }
+                              });
                             },
                             borderRadius: BorderRadius.circular(14),
                             child: AnimatedContainer(

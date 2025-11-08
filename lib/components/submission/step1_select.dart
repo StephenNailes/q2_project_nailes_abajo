@@ -2,8 +2,15 @@ import 'package:flutter/material.dart';
 import 'stepper_header.dart';
 import 'step2_quantity.dart';
 
-class Step1Select extends StatelessWidget {
+class Step1Select extends StatefulWidget {
   const Step1Select({super.key});
+
+  @override
+  State<Step1Select> createState() => _Step1SelectState();
+}
+
+class _Step1SelectState extends State<Step1Select> {
+  String _selectedAction = 'Disposed'; // Default action
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +42,132 @@ class Step1Select extends StatelessWidget {
                 fontSize: 15,
                 letterSpacing: 0.1,
               ),
+            ),
+            const SizedBox(height: 24),
+
+            // Action selector (Disposed/Repurposed)
+            Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      setState(() => _selectedAction = 'Disposed');
+                    },
+                    borderRadius: BorderRadius.circular(14),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        gradient: _selectedAction == 'Disposed'
+                            ? const LinearGradient(
+                                colors: [Color(0xFF2ECC71), Color(0xFF27AE60)],
+                              )
+                            : null,
+                        color: _selectedAction != 'Disposed' ? Colors.white : null,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: _selectedAction == 'Disposed'
+                              ? const Color(0xFF2ECC71)
+                              : Colors.grey[300]!,
+                          width: 2,
+                        ),
+                        boxShadow: _selectedAction == 'Disposed'
+                            ? [
+                                BoxShadow(
+                                  color: const Color(0xFF2ECC71).withValues(alpha: 0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.recycling,
+                            color: _selectedAction == 'Disposed'
+                                ? Colors.white
+                                : Colors.grey[600],
+                            size: 22,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Dispose',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                              color: _selectedAction == 'Disposed'
+                                  ? Colors.white
+                                  : Colors.grey[700],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      setState(() => _selectedAction = 'Repurposed');
+                    },
+                    borderRadius: BorderRadius.circular(14),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        gradient: _selectedAction == 'Repurposed'
+                            ? const LinearGradient(
+                                colors: [Color(0xFF3498DB), Color(0xFF2980B9)],
+                              )
+                            : null,
+                        color: _selectedAction != 'Repurposed' ? Colors.white : null,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: _selectedAction == 'Repurposed'
+                              ? const Color(0xFF3498DB)
+                              : Colors.grey[300]!,
+                          width: 2,
+                        ),
+                        boxShadow: _selectedAction == 'Repurposed'
+                            ? [
+                                BoxShadow(
+                                  color: const Color(0xFF3498DB).withValues(alpha: 0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.autorenew,
+                            color: _selectedAction == 'Repurposed'
+                                ? Colors.white
+                                : Colors.grey[600],
+                            size: 22,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Repurpose',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                              color: _selectedAction == 'Repurposed'
+                                  ? Colors.white
+                                  : Colors.grey[700],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 32),
 
@@ -79,7 +212,12 @@ class Step1Select extends StatelessWidget {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const Step2Quantity()),
+            MaterialPageRoute(
+              builder: (_) => Step2Quantity(
+                itemType: title,
+                action: _selectedAction,
+              ),
+            ),
           );
         },
         child: Container(

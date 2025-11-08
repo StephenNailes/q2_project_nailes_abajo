@@ -1044,6 +1044,39 @@ class SupabaseService {
           });
 
       debugPrint('✅ Post liked successfully');
+      
+      // Get post details to notify the post owner
+      try {
+        final post = await _client
+            .from('community_posts')
+            .select('user_id')
+            .eq('id', postId)
+            .single();
+        
+        final postOwnerId = post['user_id'] as String;
+        
+        // Don't notify if user liked their own post
+        if (postOwnerId != userId) {
+          // Get current user's profile for notification
+          final userProfile = await getUserProfile(userId);
+          
+          if (userProfile != null) {
+            await createNotification(
+              userId: postOwnerId,
+              type: 'like',
+              title: 'New Like',
+              message: '${userProfile.name} liked your post',
+              actorId: userId,
+              actorName: userProfile.name,
+              actorProfileImage: userProfile.profileImageUrl,
+              relatedPostId: postId,
+            );
+            debugPrint('✅ Like notification sent to post owner');
+          }
+        }
+      } catch (notifError) {
+        debugPrint('⚠️ Failed to send like notification: $notifError');
+      }
     } catch (e) {
       debugPrint('❌ Failed to like post: $e');
       throw Exception('Failed to like post: $e');
@@ -1075,13 +1108,51 @@ class SupabaseService {
     required String comment,
   }) async {
     try {
-      await _client
+      final commentData = await _client
           .from('post_comments')
           .insert({
             'post_id': postId,
             'user_id': userId,
             'comment': comment,
-          });
+          })
+          .select()
+          .single();
+      
+      debugPrint('✅ Comment added successfully');
+      
+      // Get post details to notify the post owner
+      try {
+        final post = await _client
+            .from('community_posts')
+            .select('user_id')
+            .eq('id', postId)
+            .single();
+        
+        final postOwnerId = post['user_id'] as String;
+        
+        // Don't notify if user commented on their own post
+        if (postOwnerId != userId) {
+          // Get current user's profile for notification
+          final userProfile = await getUserProfile(userId);
+          
+          if (userProfile != null) {
+            await createNotification(
+              userId: postOwnerId,
+              type: 'comment',
+              title: 'New Comment',
+              message: '${userProfile.name} commented on your post: "${comment.length > 50 ? comment.substring(0, 50) + '...' : comment}"',
+              actorId: userId,
+              actorName: userProfile.name,
+              actorProfileImage: userProfile.profileImageUrl,
+              relatedPostId: postId,
+              relatedCommentId: commentData['id'] as String,
+            );
+            debugPrint('✅ Comment notification sent to post owner');
+          }
+        }
+      } catch (notifError) {
+        debugPrint('⚠️ Failed to send comment notification: $notifError');
+      }
     } catch (e) {
       throw Exception('Failed to add comment: $e');
     }
@@ -1290,5 +1361,91 @@ class SupabaseService {
       throw Exception('Failed to update status');
     }
   }
-}
 
+  // ============================================
+  // ADMIN ANALYTICS
+  // ============================================
+
+  /// Get total user count
+  Future<int> getTotalUsersCount() async {
+    try {
+      final response = await _client
+          .from('user_profiles')
+          .select()
+          .count();
+      
+      return (response as List).length;
+    } catch (e) {
+      debugPrint('❌ Failed to get user count: $e');
+      return 0;
+    }
+  }
+
+  /// Get total submissions count
+  Future<int> getTotalSubmissionsCount() async {
+    try {
+      final response = await _client
+          .from('community_posts')
+          .select()
+          .count();
+      
+      return (response as List).length;
+    } catch (e) {
+      debugPrint('❌ Failed to get submissions count: $e');
+      return 0;
+    }
+  }
+
+  /// Get total posts count by action type
+  Future<Map<String, int>> getPostsCountByAction() async {
+    try {
+      final disposed = await _client
+          .from('community_posts')
+          .select()
+          .eq('action', 'disposed');
+      
+      final repurposed = await _client
+          .from('community_posts')
+          .select()
+          .eq('action', 'repurposed');
+      
+      return {
+        'disposed': (disposed as List).length,
+        'repurposed': (repurposed as List).length,
+      };
+    } catch (e) {
+      debugPrint('❌ Failed to get posts count by action: $e');
+      return {'disposed': 0, 'repurposed': 0};
+    }
+  }
+
+  /// Get admin statistics
+  Future<Map<String, dynamic>> getAdminStats() async {
+    try {
+      final videos = await getAllVideos();
+      final articles = await getAllArticles();
+      final usersCount = await getTotalUsersCount();
+      final submissionsCount = await getTotalSubmissionsCount();
+      final actionCounts = await getPostsCountByAction();
+
+      return {
+        'videos': videos.length,
+        'articles': articles.length,
+        'users': usersCount,
+        'submissions': submissionsCount,
+        'disposed': actionCounts['disposed'],
+        'repurposed': actionCounts['repurposed'],
+      };
+    } catch (e) {
+      debugPrint('❌ Failed to get admin stats: $e');
+      return {
+        'videos': 0,
+        'articles': 0,
+        'users': 0,
+        'submissions': 0,
+        'disposed': 0,
+        'repurposed': 0,
+      };
+    }
+  }
+}

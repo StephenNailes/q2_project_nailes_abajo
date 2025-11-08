@@ -375,6 +375,16 @@ class _ManageArticlesScreenState extends State<ManageArticlesScreen> {
               icon: const Icon(Icons.more_vert, size: 20),
               itemBuilder: (context) => [
                 const PopupMenuItem(
+                  value: 'edit',
+                  child: Row(
+                    children: [
+                      Icon(Icons.edit, size: 18, color: Color(0xFF9B59B6)),
+                      SizedBox(width: 8),
+                      Text('Edit', style: TextStyle(color: Color(0xFF9B59B6))),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
                   value: 'delete',
                   child: Row(
                     children: [
@@ -386,7 +396,9 @@ class _ManageArticlesScreenState extends State<ManageArticlesScreen> {
                 ),
               ],
               onSelected: (value) {
-                if (value == 'delete') {
+                if (value == 'edit') {
+                  context.go('/admin/articles/edit/$articleId');
+                } else if (value == 'delete') {
                   _deleteArticle(articleId, title);
                 }
               },

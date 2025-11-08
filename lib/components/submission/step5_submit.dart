@@ -1,8 +1,96 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../services/supabase_service.dart';
+import '../../utils/toast_utils.dart';
 import 'stepper_header.dart';
 
-class Step5Review extends StatelessWidget {
-  const Step5Review({super.key});
+class Step5Review extends StatefulWidget {
+  final String itemType;
+  final String action;
+  final int quantity;
+  final String location;
+  final File? imageFile;
+  
+  const Step5Review({
+    super.key,
+    required this.itemType,
+    required this.action,
+    required this.quantity,
+    required this.location,
+    this.imageFile,
+  });
+
+  @override
+  State<Step5Review> createState() => _Step5ReviewState();
+}
+
+class _Step5ReviewState extends State<Step5Review> {
+  bool _isSubmitting = false;
+
+  Future<void> _submitDisposal() async {
+    setState(() => _isSubmitting = true);
+
+    try {
+      // Get current Firebase Auth user
+      final firebaseUser = FirebaseAuth.instance.currentUser;
+      if (firebaseUser == null) {
+        throw Exception('User not logged in');
+      }
+
+      final userId = firebaseUser.uid;
+      final supabaseService = SupabaseService();
+
+      // Upload image if provided
+      String? imageUrl;
+      if (widget.imageFile != null) {
+        final fileName = '${DateTime.now().millisecondsSinceEpoch}_${widget.imageFile!.path.split('/').last}';
+        final filePath = 'community_posts/$userId/$fileName';
+
+        imageUrl = await supabaseService.uploadFile(
+          bucket: 'community-posts',
+          path: filePath,
+          file: widget.imageFile!,
+        );
+      }
+
+      // Create community post
+      await supabaseService.createCommunityPost(
+        userId: userId,
+        description: 'Successfully ${widget.action.toLowerCase()} ${widget.quantity} ${widget.itemType}(s) at ${widget.location}',
+        itemType: widget.itemType,
+        brandModel: null,
+        quantity: widget.quantity,
+        dropOffLocation: widget.location,
+        action: widget.action.toLowerCase(),
+        photoUrls: imageUrl != null ? [imageUrl] : [],
+      );
+
+      if (mounted) {
+        // Success toast
+        ToastUtils.showSuccess(
+          context,
+          message: 'Disposal submitted successfully! Your contribution has been recorded. 🎉',
+          duration: const Duration(seconds: 3),
+        );
+
+        // Navigate to community feed
+        context.go('/community');
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+        
+        // Error toast
+        ToastUtils.showError(
+          context,
+          message: 'Failed to submit disposal: ${e.toString()}',
+        );
+      }
+      debugPrint('❌ Error submitting disposal: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,33 +141,42 @@ class Step5Review extends StatelessWidget {
                   const SizedBox(height: 18),
                   _buildSummaryItem(
                     icon: Icons.smartphone,
-                    iconBg: Color(0xFFE3F0FF),
-                    iconColor: Color(0xFF4285F4),
+                    iconBg: const Color(0xFFE3F0FF),
+                    iconColor: const Color(0xFF4285F4),
                     label: "Item Type",
-                    value: "Mobile Phone",
+                    value: widget.itemType,
+                  ),
+                  _divider(),
+                  _buildSummaryItem(
+                    icon: widget.action == 'Disposed' ? Icons.recycling : Icons.autorenew,
+                    iconBg: widget.action == 'Disposed' ? const Color(0xFFE3FCEC) : const Color(0xFFE3F0FF),
+                    iconColor: widget.action == 'Disposed' ? const Color(0xFF34A853) : const Color(0xFF4285F4),
+                    label: "Action",
+                    value: widget.action,
                   ),
                   _divider(),
                   _buildSummaryItem(
                     icon: Icons.tag,
-                    iconBg: Color(0xFFFFF3E3),
-                    iconColor: Color(0xFFFFA726),
+                    iconBg: const Color(0xFFFFF3E3),
+                    iconColor: const Color(0xFFFFA726),
                     label: "Quantity",
-                    value: "2 items",
+                    value: "${widget.quantity} item${widget.quantity > 1 ? 's' : ''}",
                   ),
                   _divider(),
                   _buildSummaryItem(
                     icon: Icons.location_on,
-                    iconBg: Color(0xFFE3FCEC),
-                    iconColor: Color(0xFF34A853),
+                    iconBg: const Color(0xFFE3FCEC),
+                    iconColor: const Color(0xFF34A853),
                     label: "Drop-off Location",
-                    value: "Green Tech Center, Downtown",
+                    value: widget.location,
                   ),
-                  _divider(),
-                  _buildPhotoSummaryItem(
-                    imagePath: "lib/assets/images/apple-ip.jpg", // Replace with your asset path
-                    label: "Photo Uploaded",
-                    value: "apple-ip.jpg",
-                  ),
+                  if (widget.imageFile != null) ...[
+                    _divider(),
+                    _buildImageSummaryItem(
+                      imageFile: widget.imageFile!,
+                      label: "Photo Uploaded",
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -87,9 +184,7 @@ class Step5Review extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.popUntil(context, (route) => route.isFirst);
-                },
+                onPressed: _isSubmitting ? null : _submitDisposal,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2ECC71),
                   foregroundColor: Colors.white,
@@ -103,7 +198,16 @@ class Step5Review extends StatelessWidget {
                     fontSize: 16,
                   ),
                 ),
-                child: const Text("Submit Log"),
+                child: _isSubmitting
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Text("Submit & Share"),
               ),
             ),
             const SizedBox(height: 12),
@@ -164,21 +268,22 @@ class Step5Review extends StatelessWidget {
     );
   }
 
-  Widget _buildPhotoSummaryItem({
-    required String imagePath,
+  Widget _buildImageSummaryItem({
+    required File imageFile,
     required String label,
-    required String value,
   }) {
     return Row(
       children: [
         Container(
-          width: 36,
-          height: 36,
-          decoration: const BoxDecoration(
-            color: Color(0xFFF7F8FA),
-            shape: BoxShape.circle,
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            image: DecorationImage(
+              image: FileImage(imageFile),
+              fit: BoxFit.cover,
+            ),
           ),
-          child: Image.asset(imagePath, width: 22, height: 22, fit: BoxFit.contain),
         ),
         const SizedBox(width: 14),
         Expanded(
@@ -191,7 +296,7 @@ class Step5Review extends StatelessWidget {
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                   )),
-              Text(value,
+              Text(imageFile.path.split('/').last,
                   style: const TextStyle(
                     fontWeight: FontWeight.w400,
                     fontSize: 14,
@@ -200,14 +305,7 @@ class Step5Review extends StatelessWidget {
             ],
           ),
         ),
-        Text(
-          "View",
-          style: const TextStyle(
-            color: Color(0xFF2ECC71),
-            fontWeight: FontWeight.w500,
-            fontSize: 15,
-          ),
-        ),
+        const Icon(Icons.check_circle, color: Color(0xFF2ECC71), size: 20),
       ],
     );
   }

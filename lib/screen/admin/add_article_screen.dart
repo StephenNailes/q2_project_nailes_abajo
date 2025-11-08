@@ -97,6 +97,10 @@ class _AddArticleScreenState extends State<AddArticleScreen> {
         backgroundColor: const Color(0xFFE74C3C),
         foregroundColor: Colors.white,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () => context.go('/admin/articles'),
+        ),
       ),
       body: Container(
         decoration: const BoxDecoration(

@@ -3,7 +3,16 @@ import 'stepper_header.dart';
 import 'step4_photo.dart';
 
 class Step3DropOff extends StatefulWidget {
-  const Step3DropOff({super.key});
+  final String itemType;
+  final String action;
+  final int quantity;
+
+  const Step3DropOff({
+    super.key,
+    required this.itemType,
+    required this.action,
+    required this.quantity,
+  });
 
   @override
   State<Step3DropOff> createState() => _Step3DropOffState();
@@ -11,36 +20,69 @@ class Step3DropOff extends StatefulWidget {
 
 class _Step3DropOffState extends State<Step3DropOff> {
   int _selectedIndex = 0;
+  late String _currentAction;
 
-  final List<_Location> _locations = [
+  final List<_Location> _allLocations = [
     _Location(
-      title: "EcoCenter Downtown",
-      subtitle: "0.5 km • 123 Green Street",
+      title: "SM City Davao E-Waste Collection",
+      subtitle: "0.5 km • SM City Davao, Level 2",
+      hours: "Open until 10 PM",
+      rating: "4.8",
+      services: ["Disposed"],
+    ),
+    _Location(
+      title: "Davao Tech Refurbish Hub",
+      subtitle: "1.2 km • 456 Bonifacio St",
+      hours: "Open until 8 PM",
+      rating: "4.9",
+      services: ["Repurposed"],
+    ),
+    _Location(
+      title: "Gaisano Mall Disposal Point",
+      subtitle: "2.1 km • Gaisano Mall, Ground Floor",
+      hours: "Open until 9 PM",
+      rating: "4.6",
+      services: ["Disposed"],
+    ),
+    _Location(
+      title: "EcoCenter Repair Shop",
+      subtitle: "2.8 km • 789 Roxas Avenue",
+      hours: "Open until 7 PM",
+      rating: "4.7",
+      services: ["Repurposed"],
+    ),
+    _Location(
+      title: "City Hall E-Waste Drop-off",
+      subtitle: "3.5 km • City Hall Complex",
+      hours: "Open until 6 PM",
+      rating: "4.5",
+      services: ["Disposed"],
+    ),
+    _Location(
+      title: "GreenTech Refurbishing Center",
+      subtitle: "4.2 km • 101 Tech Park Ave",
       hours: "Open until 8 PM",
       rating: "4.8",
-    ),
-    _Location(
-      title: "RecycleHub Mall",
-      subtitle: "1.2 km • 456 Shopping Mall, L2",
-      hours: "Open until 10 PM",
-      rating: "4.6",
-    ),
-    _Location(
-      title: "Green Point Station",
-      subtitle: "2.1 km • 789 Metro Station",
-      hours: "24/7 Available",
-      rating: "4.4",
-    ),
-    _Location(
-      title: "City Hall Collection",
-      subtitle: "3.5 km • 101 City Hall Plaza",
-      hours: "Open until 6 PM",
-      rating: "4.2",
+      services: ["Repurposed"],
     ),
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _currentAction = widget.action;
+  }
+
+  List<_Location> get _filteredLocations {
+    return _allLocations
+        .where((location) => location.services.contains(_currentAction))
+        .toList();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final filteredLocations = _filteredLocations;
+
     return Scaffold(
       appBar: _buildAppBar(context),
       backgroundColor: const Color(0xFFF7F8FA),
@@ -68,13 +110,107 @@ class _Step3DropOffState extends State<Step3DropOff> {
                 fontSize: 15,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
+            // Action selector buttons
+            Row(
+              children: [
+                Expanded(
+                  child: _buildActionButton(
+                    label: "Disposed",
+                    icon: Icons.delete_outline,
+                    isSelected: _currentAction == "Disposed",
+                    onTap: () {
+                      setState(() {
+                        _currentAction = "Disposed";
+                        _selectedIndex = 0; // Reset selection
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildActionButton(
+                    label: "Repurposed",
+                    icon: Icons.refresh,
+                    isSelected: _currentAction == "Repurposed",
+                    onTap: () {
+                      setState(() {
+                        _currentAction = "Repurposed";
+                        _selectedIndex = 0; // Reset selection
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // Info box showing filtered count
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF2ECC71).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFF2ECC71).withOpacity(0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.info_outline,
+                    size: 20,
+                    color: Color(0xFF2ECC71),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      "Showing ${filteredLocations.length} location${filteredLocations.length != 1 ? 's' : ''} for $_currentAction",
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF222B45),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
             Expanded(
-              child: ListView.separated(
-                itemCount: _locations.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 16),
-                itemBuilder: (context, index) {
-                  final location = _locations[index];
+              child: filteredLocations.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.location_off,
+                            size: 64,
+                            color: Colors.grey.shade400,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            "No locations available",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "Try switching to ${_currentAction == 'Disposed' ? 'Repurposed' : 'Disposed'}",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.separated(
+                      itemCount: filteredLocations.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 16),
+                      itemBuilder: (context, index) {
+                        final location = filteredLocations[index];
                   final isSelected = index == _selectedIndex;
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
@@ -169,10 +305,23 @@ class _Step3DropOffState extends State<Step3DropOff> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (_) => const Step4Photo()));
-                },
+                onPressed: filteredLocations.isEmpty
+                    ? null
+                    : () {
+                        final selectedLocation =
+                            filteredLocations[_selectedIndex];
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => Step4Photo(
+                              itemType: widget.itemType,
+                              action: _currentAction,
+                              quantity: widget.quantity,
+                              location: selectedLocation.title,
+                            ),
+                          ),
+                        );
+                      },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2ECC71),
                   foregroundColor: Colors.white,
@@ -187,6 +336,59 @@ class _Step3DropOffState extends State<Step3DropOff> {
               ),
             ),
             const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required String label,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF2ECC71) : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isSelected
+                ? const Color(0xFF2ECC71)
+                : const Color(0xFFE4E9F2),
+            width: 2,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFF2ECC71).withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : [],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? Colors.white : const Color(0xFF8F9BB3),
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: isSelected ? Colors.white : const Color(0xFF8F9BB3),
+              ),
+            ),
           ],
         ),
       ),
@@ -219,11 +421,13 @@ class _Location {
   final String subtitle;
   final String hours;
   final String rating;
+  final List<String> services;
 
   const _Location({
     required this.title,
     required this.subtitle,
     required this.hours,
     required this.rating,
+    required this.services,
   });
 }

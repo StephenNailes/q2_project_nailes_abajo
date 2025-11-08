@@ -38,18 +38,63 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      await _authService.loginWithEmail(
+      debugPrint('🔵 Starting Email/Password Login...');
+      final userCredential = await _authService.loginWithEmail(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
       
+      if (userCredential == null || userCredential.user == null) {
+        debugPrint('❌ Email/Password login failed');
+        if (mounted) {
+          setState(() {
+            _errorMessage = 'Login failed. Please try again.';
+            _isLoading = false;
+          });
+        }
+        return;
+      }
+
+      debugPrint('✅ Email/Password login successful: ${userCredential.user!.email}');
+      
+      // Create/update user profile in Supabase
+      try {
+        debugPrint('🔵 Creating/updating Supabase profile...');
+        final userModel = UserModel(
+          id: userCredential.user!.uid,
+          name: userCredential.user!.displayName ?? 'User',
+          email: userCredential.user!.email!,
+          profileImageUrl: userCredential.user!.photoURL,
+          totalDisposed: 0,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+        
+        debugPrint('   Model created with ID: ${userModel.id}');
+        await _supabaseService.createOrUpdateUserProfile(userModel);
+        debugPrint('✅ Supabase profile created/updated');
+      } catch (supabaseError) {
+        // Log error but don't block navigation - profile can be created later
+        debugPrint('⚠️ Supabase profile creation failed: $supabaseError');
+      }
+      
       // Don't manually navigate - let GoRouter's redirect handle it
       // The authStateChanges listener will automatically redirect to /home
+      debugPrint('✅ Login successful, waiting for auto-redirect to /home');
     } catch (e) {
-      setState(() {
-        _errorMessage = _getErrorMessage(e.toString());
-        _isLoading = false;
-      });
+      debugPrint('❌ Email/Password login error: $e');
+      if (mounted) {
+        setState(() {
+          _errorMessage = _getErrorMessage(e.toString());
+          _isLoading = false;
+        });
+      }
+    } finally {
+      if (mounted && !_isLoading) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 

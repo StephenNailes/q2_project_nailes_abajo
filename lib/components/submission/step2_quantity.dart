@@ -3,7 +3,14 @@ import 'stepper_header.dart';
 import 'step3_dropoff.dart';
 
 class Step2Quantity extends StatefulWidget {
-  const Step2Quantity({super.key});
+  final String itemType;
+  final String action;
+  
+  const Step2Quantity({
+    super.key,
+    required this.itemType,
+    required this.action,
+  });
 
   @override
   State<Step2Quantity> createState() => _Step2QuantityState();
@@ -123,8 +130,16 @@ class _Step2QuantityState extends State<Step2Quantity> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (_) => const Step3DropOff()));
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => Step3DropOff(
+                        itemType: widget.itemType,
+                        action: widget.action,
+                        quantity: quantity,
+                      ),
+                    ),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2ECC71),

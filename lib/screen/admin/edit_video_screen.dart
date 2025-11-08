@@ -3,14 +3,19 @@ import 'package:go_router/go_router.dart';
 import '../../services/supabase_service.dart';
 import '../../services/youtube_service.dart';
 
-class AddVideoScreen extends StatefulWidget {
-  const AddVideoScreen({super.key});
+class EditVideoScreen extends StatefulWidget {
+  final String videoId;
+  
+  const EditVideoScreen({
+    super.key,
+    required this.videoId,
+  });
 
   @override
-  State<AddVideoScreen> createState() => _AddVideoScreenState();
+  State<EditVideoScreen> createState() => _EditVideoScreenState();
 }
 
-class _AddVideoScreenState extends State<AddVideoScreen> {
+class _EditVideoScreenState extends State<EditVideoScreen> {
   final SupabaseService _supabaseService = SupabaseService();
   final _formKey = GlobalKey<FormState>();
   
@@ -23,7 +28,8 @@ class _AddVideoScreenState extends State<AddVideoScreen> {
   String _selectedCategory = 'General';
   int _duration = 0;
   bool _isFeatured = false;
-  bool _isLoading = false;
+  bool _isLoading = true;
+  bool _isSaving = false;
   bool _isAutoFetching = false;
 
   final List<String> _categories = [
@@ -37,6 +43,12 @@ class _AddVideoScreenState extends State<AddVideoScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _loadVideoData();
+  }
+
+  @override
   void dispose() {
     _urlController.dispose();
     _titleController.dispose();
@@ -44,6 +56,72 @@ class _AddVideoScreenState extends State<AddVideoScreen> {
     _authorController.dispose();
     _thumbnailController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadVideoData() async {
+    try {
+      final videos = await _supabaseService.getAllVideos();
+      final video = videos.firstWhere(
+        (v) => v['id'] == widget.videoId,
+        orElse: () => <String, dynamic>{},
+      );
+
+      if (video.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Video not found'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          context.go('/admin/videos');
+        }
+        return;
+      }
+
+      if (mounted) {
+        setState(() {
+          // Construct full YouTube URL from video ID
+          final youtubeVideoId = video['youtube_video_id'] ?? '';
+          _urlController.text = youtubeVideoId.isNotEmpty 
+              ? 'https://www.youtube.com/watch?v=$youtubeVideoId'
+              : '';
+          
+          _titleController.text = video['title'] ?? '';
+          _descriptionController.text = video['description'] ?? '';
+          _authorController.text = video['author'] ?? '';
+          _thumbnailController.text = video['thumbnail_url'] ?? '';
+          
+          // Normalize category to match dropdown values
+          String categoryFromDb = video['category'] ?? 'General';
+          if (_categories.contains(categoryFromDb)) {
+            _selectedCategory = categoryFromDb;
+          } else {
+            // Try to find a matching category (case-insensitive)
+            final matchingCategory = _categories.firstWhere(
+              (cat) => cat.toLowerCase() == categoryFromDb.toLowerCase(),
+              orElse: () => 'General',
+            );
+            _selectedCategory = matchingCategory;
+          }
+          
+          _duration = video['duration'] ?? 0;
+          _isFeatured = video['is_featured'] ?? false;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('❌ Error loading video: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading video: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        context.go('/admin/videos');
+      }
+    }
   }
 
   Future<void> _autoFetch() async {
@@ -102,26 +180,24 @@ class _AddVideoScreenState extends State<AddVideoScreen> {
       return;
     }
 
-    setState(() => _isLoading = true);
+    setState(() => _isSaving = true);
 
     try {
-      await _supabaseService.addVideo(
-        title: _titleController.text.trim(),
-        description: _descriptionController.text.trim(),
-        youtubeVideoId: videoId,
-        thumbnailUrl: _thumbnailController.text.trim().isEmpty 
-            ? null 
-            : _thumbnailController.text.trim(),
-        category: _selectedCategory,
-        duration: _duration,
-        author: _authorController.text.trim(),
-        isFeatured: _isFeatured,
-      );
+      await _supabaseService.updateVideo(widget.videoId, {
+        'youtube_video_id': videoId,
+        'title': _titleController.text,
+        'description': _descriptionController.text,
+        'author': _authorController.text,
+        'category': _selectedCategory,
+        'duration': _duration,
+        'thumbnail_url': _thumbnailController.text,
+        'is_featured': _isFeatured,
+      });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Video added successfully!'),
+            content: Text('Video updated successfully!'),
             backgroundColor: Color(0xFF2ECC71),
           ),
         );
@@ -138,26 +214,41 @@ class _AddVideoScreenState extends State<AddVideoScreen> {
       }
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() => _isSaving = false);
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            'Edit Video',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: const Color(0xFFE74C3C),
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE74C3C)),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Add Video',
+          'Edit Video',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: const Color(0xFFE74C3C),
         foregroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => context.go('/admin/videos'),
-        ),
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -193,17 +284,17 @@ class _AddVideoScreenState extends State<AddVideoScreen> {
                           ),
                         )
                       : IconButton(
-                          icon: const Icon(Icons.download),
+                          icon: const Icon(Icons.cloud_download),
                           onPressed: _autoFetch,
                           tooltip: 'Auto-fetch metadata',
                         ),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a YouTube URL';
+                    return 'Please enter YouTube URL';
                   }
-                  if (YouTubeService.extractVideoId(value) == null) {
-                    return 'Invalid YouTube URL';
+                  if (!value.contains('youtube.com') && !value.contains('youtu.be')) {
+                    return 'Please enter a valid YouTube URL';
                   }
                   return null;
                 },
@@ -223,32 +314,39 @@ class _AddVideoScreenState extends State<AddVideoScreen> {
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a title';
+                    return 'Please enter title';
                   }
                   return null;
                 },
-                maxLines: 2,
               ),
               const SizedBox(height: 16),
 
               // Description
               TextFormField(
                 controller: _descriptionController,
+                maxLines: 3,
                 decoration: InputDecoration(
-                  labelText: 'Description *',
+                  labelText: 'Description',
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a description';
-                  }
-                  return null;
-                },
-                maxLines: 4,
+              ),
+              const SizedBox(height: 16),
+
+              // Author
+              TextFormField(
+                controller: _authorController,
+                decoration: InputDecoration(
+                  labelText: 'Author',
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
 
@@ -270,72 +368,40 @@ class _AddVideoScreenState extends State<AddVideoScreen> {
                   );
                 }).toList(),
                 onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _selectedCategory = value);
-                  }
+                  setState(() => _selectedCategory = value!);
                 },
               ),
               const SizedBox(height: 16),
 
-              // Author
+              // Duration
               TextFormField(
-                controller: _authorController,
+                initialValue: _duration.toString(),
+                keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: 'Author *',
+                  labelText: 'Duration (seconds)',
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter author name';
-                  }
-                  return null;
+                onChanged: (value) {
+                  setState(() => _duration = int.tryParse(value) ?? 0);
                 },
               ),
               const SizedBox(height: 16),
 
-              // Thumbnail URL (optional)
+              // Thumbnail URL
               TextFormField(
                 controller: _thumbnailController,
                 decoration: InputDecoration(
-                  labelText: 'Thumbnail URL (optional)',
-                  hintText: 'Leave empty for default',
+                  labelText: 'Thumbnail URL',
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-
-              // Duration (in seconds)
-              TextFormField(
-                initialValue: _duration.toString(),
-                decoration: InputDecoration(
-                  labelText: 'Duration (seconds) *',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                keyboardType: TextInputType.number,
-                onChanged: (value) {
-                  _duration = int.tryParse(value) ?? 0;
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter duration';
-                  }
-                  if (int.tryParse(value) == null) {
-                    return 'Please enter a valid number';
-                  }
-                  return null;
-                },
               ),
               const SizedBox(height: 16),
 
@@ -347,25 +413,46 @@ class _AddVideoScreenState extends State<AddVideoScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Featured Video',
-                      style: TextStyle(fontSize: 16),
+                    const Icon(Icons.star, color: Color(0xFFF39C12)),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Featured Video',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Show in featured section',
+                            style: TextStyle(
+                              color: Colors.black54,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     Switch(
                       value: _isFeatured,
-                      onChanged: (value) => setState(() => _isFeatured = value),
-                      activeColor: const Color(0xFFE74C3C),
+                      onChanged: (value) {
+                        setState(() => _isFeatured = value);
+                      },
+                      activeColor: const Color(0xFF2ECC71),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
 
               // Submit Button
               ElevatedButton(
-                onPressed: _isLoading ? null : _submit,
+                onPressed: _isSaving ? null : _submit,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFE74C3C),
                   foregroundColor: Colors.white,
@@ -374,7 +461,7 @@ class _AddVideoScreenState extends State<AddVideoScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: _isLoading
+                child: _isSaving
                     ? const SizedBox(
                         height: 20,
                         width: 20,
@@ -384,10 +471,14 @@ class _AddVideoScreenState extends State<AddVideoScreen> {
                         ),
                       )
                     : const Text(
-                        'Add Video',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        'Update Video',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
               ),
+              const SizedBox(height: 16),
             ],
           ),
         ),

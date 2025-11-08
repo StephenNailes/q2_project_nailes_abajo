@@ -23,7 +23,9 @@ import '../screen/maps_screen.dart';
 import '../screen/admin/manage_videos_screen.dart';
 import '../screen/admin/manage_articles_screen.dart';
 import '../screen/admin/add_video_screen.dart';
+import '../screen/admin/edit_video_screen.dart';
 import '../screen/admin/add_article_screen.dart';
+import '../screen/admin/edit_article_screen.dart';
 import '../screen/admin/admin_notification_screen.dart';
 import '../screen/admin/admin_settings_screen.dart';
 import '../screen/admin_diagnostic_screen.dart';
@@ -184,12 +186,26 @@ final appRouter = GoRouter(
       builder: (context, state) => const AddVideoScreen(),
     ),
     GoRoute(
+      path: '/admin/videos/edit/:videoId',
+      builder: (context, state) {
+        final videoId = state.pathParameters['videoId']!;
+        return EditVideoScreen(videoId: videoId);
+      },
+    ),
+    GoRoute(
       path: '/admin/articles',
       builder: (context, state) => const ManageArticlesScreen(),
     ),
     GoRoute(
       path: '/admin/articles/add',
       builder: (context, state) => const AddArticleScreen(),
+    ),
+    GoRoute(
+      path: '/admin/articles/edit/:articleId',
+      builder: (context, state) {
+        final articleId = state.pathParameters['articleId']!;
+        return EditArticleScreen(articleId: articleId);
+      },
     ),
     
     // ✅ Admin Account Routes
